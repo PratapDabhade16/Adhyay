@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ADHYAY | Student Dashboard</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="student-dashboard.css">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg dashboard-nav">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand" href="#">
+            <span class="brand-icon">A</span>
+            ADHYAY
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+
+            <div class="student-info">
+                <span id="studentName">Student</span>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">
+                Logout
+            </button>
+
+        </div>
+    </div>
+</nav>
+
+
+<!-- MAIN -->
+<main class="container-fluid dashboard-container">
+
+    <!-- WELCOME -->
+    <section class="welcome-section">
+
+        <div>
+            <p class="small-label">STUDENT DASHBOARD</p>
+
+            <h1>
+                Welcome back,
+                <span id="welcomeName">Student</span> 👋
+            </h1>
+
+            <p>
+                Continue your learning journey and access your recorded lectures.
+            </p>
+        </div>
+
+        <div class="learning-badge">
+            <span>Learning Progress</span>
+            <strong>0%</strong>
+        </div>
+
+    </section>
+
+
+    <!-- SEARCH -->
+    <section class="search-section">
+
+        <div class="search-box">
+            <span>🔍</span>
+
+            <input
+                type="text"
+                id="lectureSearch"
+                placeholder="Search subjects or lectures..."
+                onkeyup="searchLectures()">
+        </div>
+
+    </section>
+
+
+    <!-- QUICK STATS -->
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div>
+                <span>Subjects</span>
+                <strong>0</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🎥</div>
+            <div>
+                <span>Lectures Watched</span>
+                <strong>0</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div>
+                <span>Learning Hours</span>
+                <strong>0</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔖</div>
+            <div>
+                <span>Bookmarks</span>
+                <strong>0</strong>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- CONTINUE WATCHING -->
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+            <div>
+                <p class="small-label">YOUR LEARNING</p>
+                <h2>Continue Watching</h2>
+            </div>
+
+            <button class="view-btn">
+                View All
+            </button>
+        </div>
+
+        <div class="empty-card">
+
+            <div class="empty-icon">🎬</div>
+
+            <h3>No lectures started yet</h3>
+
+            <p>
+                Your recently watched lectures will appear here.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- SUBJECTS -->
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+
+            <div>
+                <p class="small-label">COURSE CONTENT</p>
+                <h2>My Subjects</h2>
+            </div>
+
+            <button class="view-btn">
+                View All
+            </button>
+
+        </div>
+
+
+        <div id="subjectsContainer" class="subject-grid">
+
+            <div class="empty-card">
+
+                <div class="empty-icon">📚</div>
+
+                <h3>No subjects available</h3>
+
+                <p>
+                    Subjects and recorded lectures will appear here.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- BOOKMARKS + QUESTIONS -->
+    <section class="two-column-section">
+
+        <div class="dashboard-section">
+
+            <div class="section-heading">
+                <div>
+                    <p class="small-label">SAVED</p>
+                    <h2>Bookmarks</h2>
+                </div>
+            </div>
+
+            <div class="mini-empty">
+                🔖
+                <p>No bookmarked lectures yet.</p>
+            </div>
+
+        </div>
+
+
+        <div class="dashboard-section">
+
+            <div class="section-heading">
+                <div>
+                    <p class="small-label">DISCUSSION</p>
+                    <h2>Recent Questions</h2>
+                </div>
+            </div>
+
+            <div class="mini-empty">
+                💬
+                <p>Your questions will appear here.</p>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+    <p>© 2026 ADHYAY — Your Learning. Your Chapters.</p>
+</footer>
+
+
+<script src="student-dashboard.js"></script>
+
+</body>
+</html>

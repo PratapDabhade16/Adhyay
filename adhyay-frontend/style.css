@@ -1,0 +1,589 @@
+```css
+/* =========================================================
+   ADHYAY - GLOBAL
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #071416;
+    color: #f3fafa;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+.navbar {
+    background: rgba(7, 20, 22, 0.82);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 18px 0;
+}
+
+.navbar-brand {
+    font-size: 1.35rem;
+    letter-spacing: 1px;
+    color: #ffffff !important;
+}
+
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-right: 8px;
+    border-radius: 10px;
+    background: #18c8c1;
+    color: #061315;
+    font-weight: 800;
+}
+
+.nav-link {
+    color: #b9caca !important;
+    margin-left: 22px;
+    transition: 0.3s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #25d8d0 !important;
+}
+
+.btn-login {
+    border: 1px solid #20c9c2;
+    color: #25d8d0;
+    border-radius: 9px;
+    padding: 9px 22px;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    background: #20c9c2;
+    color: #061315;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+    position: relative;
+    min-height: 100vh;
+    padding-top: 80px;
+    background:
+        radial-gradient(circle at 75% 30%, rgba(21, 191, 184, 0.14), transparent 30%),
+        radial-gradient(circle at 15% 70%, rgba(21, 191, 184, 0.08), transparent 25%),
+        #071416;
+}
+
+.hero h1 {
+    max-width: 720px;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -2px;
+}
+
+.hero h1 span {
+    display: block;
+    color: #20d1c9;
+}
+
+.hero-text {
+    max-width: 620px;
+    margin-top: 25px;
+    color: #a9bebe;
+    font-size: 1.08rem;
+    line-height: 1.8;
+}
+
+.hero-badge {
+    display: inline-block;
+    margin-bottom: 22px;
+    padding: 8px 16px;
+    border: 1px solid rgba(32, 209, 201, 0.3);
+    border-radius: 50px;
+    background: rgba(32, 209, 201, 0.07);
+    color: #35dcd5;
+    font-size: 0.85rem;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+}
+
+.btn-primary-custom {
+    display: inline-block;
+    padding: 13px 27px;
+    border-radius: 9px;
+    background: #20c9c2;
+    color: #061315;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.btn-primary-custom:hover {
+    background: #35e0d8;
+    color: #061315;
+    transform: translateY(-2px);
+}
+
+.btn-outline-custom {
+    display: inline-block;
+    padding: 12px 27px;
+    border: 1px solid #315457;
+    border-radius: 9px;
+    color: #d8e8e8;
+    transition: 0.3s;
+}
+
+.btn-outline-custom:hover {
+    border-color: #20c9c2;
+    color: #20c9c2;
+}
+
+
+/* =========================================================
+   HERO STATS
+========================================================= */
+
+.hero-stats {
+    display: flex;
+    gap: 45px;
+    margin-top: 50px;
+}
+
+.hero-stats div {
+    display: flex;
+    flex-direction: column;
+}
+
+.hero-stats strong {
+    font-size: 1.45rem;
+    color: #ffffff;
+}
+
+.hero-stats small {
+    margin-top: 4px;
+    color: #829999;
+}
+
+
+/* =========================================================
+   DASHBOARD CARD
+========================================================= */
+
+.learning-card {
+    position: relative;
+    padding: 28px;
+    border: 1px solid rgba(91, 218, 211, 0.16);
+    border-radius: 22px;
+    background: linear-gradient(
+        145deg,
+        rgba(22, 50, 53, 0.92),
+        rgba(10, 29, 31, 0.94)
+    );
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.35),
+        0 0 80px rgba(18, 199, 191, 0.08);
+}
+
+.card-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header-custom small,
+.lecture-card small {
+    color: #769292;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+}
+
+.card-header-custom h5 {
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.profile-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #173b3d;
+}
+
+.progress-card {
+    margin-top: 28px;
+    padding: 20px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    color: #b7caca;
+}
+
+.progress-info strong {
+    color: #22d3cb;
+}
+
+.progress {
+    height: 7px;
+    background: #183335;
+}
+
+.progress-bar {
+    background: #20c9c2;
+    border-radius: 20px;
+}
+
+.lecture-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.025);
+    transition: 0.3s;
+}
+
+.lecture-card:hover {
+    transform: translateX(5px);
+    border-color: rgba(32, 209, 201, 0.3);
+}
+
+.lecture-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(32, 209, 201, 0.12);
+    color: #24d5ce;
+}
+
+.lecture-icon.secondary {
+    background: rgba(108, 163, 255, 0.1);
+}
+
+.lecture-card h6 {
+    margin: 4px 0;
+    color: #f1f8f8;
+}
+
+.lecture-card span {
+    color: #7f9999;
+    font-size: 0.78rem;
+}
+
+
+/* =========================================================
+   FEATURES
+========================================================= */
+
+.features-section {
+    padding: 110px 0;
+    background: #091b1d;
+}
+
+.section-heading {
+    max-width: 700px;
+    margin: 0 auto 55px;
+    text-align: center;
+}
+
+.section-heading > span {
+    color: #20d1c9;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.section-heading h2 {
+    margin-top: 12px;
+    font-size: clamp(2.1rem, 4vw, 3.3rem);
+    font-weight: 750;
+}
+
+.section-heading h2 span {
+    color: #20d1c9;
+}
+
+.section-heading p {
+    margin-top: 18px;
+    color: #91a9a9;
+    line-height: 1.7;
+}
+
+.feature-card {
+    height: 100%;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.025);
+    transition: 0.35s;
+}
+
+.feature-card:hover {
+    transform: translateY(-7px);
+    border-color: rgba(32, 209, 201, 0.35);
+    background: rgba(32, 209, 201, 0.045);
+}
+
+.feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 22px;
+    border-radius: 14px;
+    background: rgba(32, 209, 201, 0.1);
+    font-size: 1.4rem;
+}
+
+.feature-card h4 {
+    font-size: 1.15rem;
+}
+
+.feature-card p {
+    margin-top: 12px;
+    margin-bottom: 0;
+    color: #8fa5a5;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   ABOUT
+========================================================= */
+
+.about-section {
+    padding: 120px 0;
+    background: #071416;
+}
+
+.about-section .section-heading {
+    margin: 0;
+}
+
+.about-visual {
+    position: relative;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-main {
+    width: 270px;
+    height: 270px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(32, 209, 201, 0.25);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(32, 209, 201, 0.12), transparent 65%),
+        #0b2022;
+    box-shadow: 0 0 90px rgba(32, 209, 201, 0.08);
+}
+
+.about-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 65px;
+    height: 65px;
+    border-radius: 18px;
+    background: #20c9c2;
+    color: #061315;
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.about-main h3 {
+    margin-top: 18px;
+    letter-spacing: 2px;
+}
+
+.about-main p {
+    color: #7f9999;
+    font-size: 0.8rem;
+}
+
+.floating-card {
+    position: absolute;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #10282a;
+    color: #cde0e0;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card-one {
+    top: 35px;
+    left: 10px;
+}
+
+.card-two {
+    right: 0;
+    bottom: 40px;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer {
+    padding: 30px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: #051012;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.footer-content h4 {
+    margin: 0;
+}
+
+.footer-content p {
+    margin: 7px 0 0;
+    color: #718989;
+    font-size: 0.85rem;
+}
+
+.footer-right {
+    color: #657c7c;
+    font-size: 0.8rem;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 991px) {
+
+    .navbar-nav {
+        padding-top: 15px;
+    }
+
+    .nav-link {
+        margin-left: 0;
+        padding: 10px 0 !important;
+    }
+
+    .btn-login {
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .hero {
+        padding-top: 120px;
+    }
+
+    .hero .row {
+        padding-bottom: 70px;
+    }
+
+    .learning-card {
+        margin-top: 50px;
+    }
+
+    .about-visual {
+        margin-bottom: 30px;
+    }
+}
+
+
+@media (max-width: 576px) {
+
+    .hero h1 {
+        letter-spacing: -1px;
+    }
+
+    .hero-text {
+        font-size: 1rem;
+    }
+
+    .hero-stats {
+        gap: 25px;
+    }
+
+    .learning-card {
+        padding: 20px;
+    }
+
+    .section-heading {
+        margin-bottom: 40px;
+    }
+
+    .features-section,
+    .about-section {
+        padding: 80px 0;
+    }
+
+    .about-main {
+        width: 220px;
+        height: 220px;
+    }
+
+    .floating-card {
+        font-size: 0.75rem;
+    }
+
+    .card-one {
+        left: 0;
+    }
+
+    .card-two {
+        right: 0;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+```
