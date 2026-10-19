@@ -1,3 +1,4 @@
+
 package com.adhyay.adhyay_backend.service;
 
 import com.adhyay.adhyay_backend.model.Lecture;
@@ -7,6 +8,7 @@ import com.cloudinary.utils.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,6 @@ public class LectureService {
     public LectureService(
             LectureRepository lectureRepository,
             Cloudinary cloudinary) {
-
         this.lectureRepository = lectureRepository;
         this.cloudinary = cloudinary;
     }
@@ -40,23 +41,42 @@ public class LectureService {
 
         String contentType = video.getContentType();
 
-        if (contentType == null || !contentType.startsWith("video/")) {
+        if (contentType == null ||
+                !contentType.startsWith("video/")) {
             throw new RuntimeException("Only video files are allowed");
         }
 
-        Map<?, ?> uploadResult = cloudinary.uploader().upload(
-                video.getBytes(),
-                ObjectUtils.asMap(
-                        "resource_type", "video",
-                        "folder", "adhyay/lectures"
-                )
+        File temporaryVideo = File.createTempFile(
+                "adhyay-lecture-", ".upload"
         );
 
-        String videoUrl = uploadResult.get("secure_url").toString();
-        String publicId = uploadResult.get("public_id").toString();
+        Map<?, ?> uploadResult;
+
+        try {
+            video.transferTo(temporaryVideo);
+
+            uploadResult = cloudinary.uploader().uploadLarge(
+                    temporaryVideo,
+                    ObjectUtils.asMap(
+                            "resource_type", "video",
+                            "folder", "adhyay/lectures",
+                            "chunk_size", 6000000
+                    )
+            );
+        } finally {
+            if (temporaryVideo.exists() &&
+                    !temporaryVideo.delete()) {
+                temporaryVideo.deleteOnExit();
+            }
+        }
+
+        String videoUrl =
+                uploadResult.get("secure_url").toString();
+
+        String publicId =
+                uploadResult.get("public_id").toString();
 
         Lecture lecture = new Lecture();
-
         lecture.setTitle(title);
         lecture.setDescription(description);
         lecture.setSubject(subject);
@@ -80,8 +100,9 @@ public class LectureService {
     public List<Lecture> getLecturesBySubjectAndUnit(
             String subject,
             String unit) {
-
-        return lectureRepository.findBySubjectAndUnit(subject, unit);
+        return lectureRepository.findBySubjectAndUnit(
+                subject, unit
+        );
     }
 
     public List<Lecture> getLecturesByFaculty(String uploadedBy) {
@@ -89,13 +110,11 @@ public class LectureService {
     }
 
     public void deleteLecture(String id) throws IOException {
-
         Lecture lecture = lectureRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Lecture not found"));
 
         if (lecture.getPublicId() != null) {
-
             cloudinary.uploader().destroy(
                     lecture.getPublicId(),
                     ObjectUtils.asMap(

@@ -1,14 +1,21 @@
-const API_URL = "http://localhost:8080";
+
+/* =========================================
+   ADHYAY - Faculty Dashboard
+   File: faculty-dashboard.js
+   ========================================= */
+
+const API_URL = "http://localhost:8081/api";
+
+const UPLOAD_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 let currentUser = null;
+let uploadInProgress = false;
 
+/* =========================================
+   PAGE INITIALIZATION
+========================================= */
 
-/* =========================
-   PAGE LOAD
-========================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
+document.addEventListener("DOMContentLoaded", async () => {
     const storedUser = localStorage.getItem("adhyayUser");
 
     if (!storedUser) {
@@ -24,150 +31,214 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-
-    if (currentUser.role !== "FACULTY") {
-
+    if (
+        !currentUser ||
+        String(currentUser.role || "").toUpperCase() !== "FACULTY"
+    ) {
         alert("Faculty access required.");
-
         window.location.href = "login.html";
-
         return;
     }
 
-
     displayUser();
-
     setupFileSelection();
-
     setupUploadForm();
-
     setupLogout();
+    setupLectureListActions();
 
-    loadLectures();
-
+    await loadLectures();
 });
 
-
-/* =========================
-   DISPLAY USER
-========================= */
+/* =========================================
+   DISPLAY FACULTY DETAILS
+========================================= */
 
 function displayUser() {
-
     const name =
         currentUser.name ||
+        currentUser.fullName ||
         currentUser.email ||
         "Faculty";
 
-    document.getElementById("facultyName").textContent = name;
+    const facultyName = document.getElementById("facultyName");
+    const welcomeName = document.getElementById("welcomeName");
 
-    document.getElementById("welcomeName").textContent = name;
+    if (facultyName) {
+        facultyName.textContent = name;
+    }
 
+    if (welcomeName) {
+        welcomeName.textContent = name;
+    }
 }
 
-
-/* =========================
+/* =========================================
    FILE SELECTION
-========================= */
+========================================= */
 
 function setupFileSelection() {
+    const videoInput = document.getElementById("video");
+    const selectedFile = document.getElementById("selectedFile");
 
-    const videoInput =
-        document.getElementById("video");
-
-    const selectedFile =
-        document.getElementById("selectedFile");
-
+    if (!videoInput || !selectedFile) {
+        console.error("Video input or selected-file display is missing.");
+        return;
+    }
 
     videoInput.addEventListener("change", () => {
-
-        const file = videoInput.files[0];
+        const file = videoInput.files?.[0];
 
         if (!file) {
-
-            selectedFile.textContent =
-                "No video selected";
-
+            selectedFile.textContent = "No video selected";
             selectedFile.classList.remove("selected");
-
             return;
         }
 
+        const sizeMB = file.size / (1024 * 1024);
+        const extension = file.name.split(".").pop().toLowerCase();
 
-        const sizeMB =
-            (file.size / (1024 * 1024)).toFixed(2);
+        const allowedExtensions = [
+            "mp4", "mov", "avi", "webm", "mkv", "m4v"
+        ];
 
-
-        selectedFile.textContent =
-            `${file.name} — ${sizeMB} MB`;
-
-        selectedFile.classList.add("selected");
-
-    });
-
-}
-
-
-/* =========================
-   UPLOAD FORM
-========================= */
-
-function setupUploadForm() {
-
-    const form =
-        document.getElementById("uploadForm");
-
-
-    form.addEventListener("submit", async (event) => {
-
-        event.preventDefault();
-
-        await uploadLecture();
-
-    });
-
-}
-
-
-/* =========================
-   UPLOAD LECTURE
-========================= */
-
-function uploadLecture() {
-
-    return new Promise((resolve) => {
-
-        const video =
-            document.getElementById("video").files[0];
-
-        const title =
-            document.getElementById("title").value.trim();
-
-        const description =
-            document.getElementById("description").value.trim();
-
-        const subject =
-            document.getElementById("subject").value.trim();
-
-        const unit =
-            document.getElementById("unit").value;
-
-        const lectureNumber =
-            document.getElementById("lectureNumber").value;
-
-
-        if (!video) {
-
+        if (!allowedExtensions.includes(extension)) {
             showMessage(
-                "Please select a lecture video.",
+                "Unsupported video format. Choose MP4, MOV, AVI, WebM, MKV, or M4V.",
                 "error"
             );
 
-            resolve();
-
+            videoInput.value = "";
+            selectedFile.textContent = "No video selected";
+            selectedFile.classList.remove("selected");
             return;
         }
 
+        if (file.size === 0) {
+            showMessage("The selected video file is empty.", "error");
+            videoInput.value = "";
+            selectedFile.textContent = "No video selected";
+            selectedFile.classList.remove("selected");
+            return;
+        }
+
+        if (sizeMB > 500) {
+            showMessage(
+                "The video exceeds the configured 500 MB limit.",
+                "error"
+            );
+
+            videoInput.value = "";
+            selectedFile.textContent = "No video selected";
+            selectedFile.classList.remove("selected");
+            return;
+        }
+
+        clearMessage();
+
+        selectedFile.textContent =
+            `${file.name} — ${sizeMB.toFixed(2)} MB`;
+
+        selectedFile.classList.add("selected");
+    });
+}
+
+/* =========================================
+   UPLOAD FORM
+========================================= */
+
+function setupUploadForm() {
+    const form = document.getElementById("uploadForm");
+
+    if (!form) {
+        console.error("Upload form was not found.");
+        return;
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (uploadInProgress) {
+            return;
+        }
+
+        await uploadLecture();
+    });
+}
+
+/* =========================================
+   UPLOAD LECTURE
+========================================= */
+
+function uploadLecture() {
+    return new Promise((resolve) => {
+        const videoInput = document.getElementById("video");
+        const titleInput = document.getElementById("title");
+        const descriptionInput = document.getElementById("description");
+        const subjectInput = document.getElementById("subject");
+        const unitInput = document.getElementById("unit");
+        const lectureNumberInput =
+            document.getElementById("lectureNumber");
+
+        if (
+            !videoInput ||
+            !titleInput ||
+            !descriptionInput ||
+            !subjectInput ||
+            !unitInput ||
+            !lectureNumberInput
+        ) {
+            showMessage(
+                "Some upload form fields are missing. Check faculty-dashboard.html.",
+                "error"
+            );
+            resolve();
+            return;
+        }
+
+        const video = videoInput.files?.[0];
+        const title = titleInput.value.trim();
+        const description = descriptionInput.value.trim();
+        const subject = subjectInput.value.trim();
+        const unit = unitInput.value.trim();
+        const lectureNumber = lectureNumberInput.value.trim();
+
+        if (!video) {
+            showMessage("Please select a lecture video.", "error");
+            resolve();
+            return;
+        }
+
+        if (!title || !subject || !unit || !lectureNumber) {
+            showMessage(
+                "Please fill in the title, subject, unit, and lecture number.",
+                "error"
+            );
+            resolve();
+            return;
+        }
+
+        if (
+            !Number.isInteger(Number(lectureNumber)) ||
+            Number(lectureNumber) < 1
+        ) {
+            showMessage(
+                "Lecture number must be a positive whole number.",
+                "error"
+            );
+            resolve();
+            return;
+        }
+
+        const uploadedBy = currentUser.email || currentUser.name;
+
+        if (!uploadedBy) {
+            showMessage(
+                "Faculty account information is missing. Please log in again.",
+                "error"
+            );
+            resolve();
+            return;
+        }
 
         const formData = new FormData();
 
@@ -177,496 +248,510 @@ function uploadLecture() {
         formData.append("subject", subject);
         formData.append("unit", unit);
         formData.append("lectureNumber", lectureNumber);
-
-        formData.append(
-            "uploadedBy",
-            currentUser.email || currentUser.name
-        );
-
+        formData.append("uploadedBy", uploadedBy);
 
         const xhr = new XMLHttpRequest();
+        let finished = false;
 
-        xhr.open(
-            "POST",
-            `${API_URL}/api/lectures/upload`
-        );
+        function finish() {
+            if (finished) return false;
 
-
-        /* =========================
-           PROGRESS
-        ========================= */
-
-        xhr.upload.addEventListener(
-            "progress",
-            (event) => {
-
-                if (!event.lengthComputable) {
-                    return;
-                }
-
-                const percent =
-                    Math.round(
-                        (event.loaded / event.total) * 100
-                    );
-
-
-                document.getElementById(
-                    "progressContainer"
-                ).style.display = "block";
-
-
-                const progress =
-                    document.getElementById(
-                        "uploadProgress"
-                    );
-
-
-                progress.style.width =
-                    `${percent}%`;
-
-                progress.textContent =
-                    `${percent}%`;
-
-
-                document.getElementById(
-                    "uploadStatus"
-                ).textContent =
-                    percent < 100
-                        ? `Uploading video... ${percent}%`
-                        : "Processing video...";
-            }
-        );
-
-
-        /* =========================
-           SUCCESS
-        ========================= */
-
-        xhr.onload = () => {
-
+            finished = true;
+            uploadInProgress = false;
             setLoading(false);
 
+            return true;
+        }
 
-            if (
-                xhr.status >= 200 &&
-                xhr.status < 300
-            ) {
+        xhr.open("POST", `${API_URL}/lectures/upload`, true);
 
+        // Prevent an indefinitely spinning upload interface.
+        xhr.timeout = UPLOAD_TIMEOUT;
+
+        xhr.setRequestHeader("Accept", "application/json");
+
+        /* ----- Upload Progress ----- */
+
+        xhr.upload.addEventListener("progress", (event) => {
+            if (!event.lengthComputable) return;
+
+            const percent = Math.min(
+                100,
+                Math.round((event.loaded / event.total) * 100)
+            );
+
+            const progressContainer =
+                document.getElementById("progressContainer");
+
+            const progressBar =
+                document.getElementById("uploadProgress");
+
+            const uploadStatus =
+                document.getElementById("uploadStatus");
+
+            if (progressContainer) {
+                progressContainer.style.display = "block";
+            }
+
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+                progressBar.textContent = `${percent}%`;
+                progressBar.setAttribute("aria-valuenow", String(percent));
+            }
+
+            if (uploadStatus) {
+                uploadStatus.textContent =
+                    percent < 100
+                        ? `Sending video to server... ${percent}%`
+                        : "Video sent. Waiting for Cloudinary and database confirmation...";
+            }
+        });
+
+        /* ----- Server Response ----- */
+
+        xhr.onload = async () => {
+            if (!finish()) return;
+
+            if (xhr.status >= 200 && xhr.status < 300) {
                 showMessage(
-                    "Lecture uploaded successfully to Cloudinary!",
+                    "Lecture uploaded successfully! The server confirmed the upload.",
                     "success"
                 );
 
+                const form = document.getElementById("uploadForm");
+                if (form) form.reset();
 
-                document.getElementById(
-                    "uploadForm"
-                ).reset();
+                const selectedFile =
+                    document.getElementById("selectedFile");
 
-
-                document.getElementById(
-                    "selectedFile"
-                ).textContent =
-                    "No video selected";
-
-
-                document.getElementById(
-                    "selectedFile"
-                ).classList.remove("selected");
-
-
-                document.getElementById(
-                    "progressContainer"
-                ).style.display = "none";
-
-
-                loadLectures();
-
-            } else {
-
-                let errorMessage =
-                    "Lecture upload failed.";
-
-                try {
-
-                    errorMessage =
-                        JSON.parse(xhr.responseText);
-
-                } catch (_) {
-
-                    if (xhr.responseText) {
-                        errorMessage =
-                            xhr.responseText;
-                    }
-
+                if (selectedFile) {
+                    selectedFile.textContent = "No video selected";
+                    selectedFile.classList.remove("selected");
                 }
 
+                const progressContainer =
+                    document.getElementById("progressContainer");
+
+                if (progressContainer) {
+                    progressContainer.style.display = "none";
+                }
+
+                const uploadStatus =
+                    document.getElementById("uploadStatus");
+
+                if (uploadStatus) {
+                    uploadStatus.textContent = "Upload complete.";
+                }
+
+                await loadLectures();
+            } else {
+                const serverMessage = parseServerError(xhr.responseText);
 
                 showMessage(
-                    errorMessage,
+                    `Upload failed (${xhr.status}): ${serverMessage}`,
                     "error"
                 );
 
+                const uploadStatus =
+                    document.getElementById("uploadStatus");
+
+                if (uploadStatus) {
+                    uploadStatus.textContent = "Upload failed.";
+                }
             }
 
             resolve();
-
         };
 
-
-        /* =========================
-           NETWORK ERROR
-        ========================= */
+        /* ----- Network Failure ----- */
 
         xhr.onerror = () => {
-
-            setLoading(false);
+            if (!finish()) return;
 
             showMessage(
-                "Cannot connect to the ADHYAY backend.",
+                "Network error. Check that the backend is running on port 8081 and that your browser can reach it.",
                 "error"
             );
 
             resolve();
-
         };
 
+        /* ----- Timeout ----- */
 
-        setLoading(true);
+        xhr.ontimeout = () => {
+            if (!finish()) return;
 
-        xhr.send(formData);
-
-    });
-
-}
-
-
-/* =========================
-   LOADING STATE
-========================= */
-
-function setLoading(loading) {
-
-    const button =
-        document.getElementById("uploadBtn");
-
-    const buttonText =
-        document.getElementById("uploadBtnText");
-
-    const spinner =
-        document.getElementById("uploadSpinner");
-
-
-    button.disabled = loading;
-
-    if (loading) {
-
-        buttonText.textContent =
-            "Uploading...";
-
-        spinner.style.display =
-            "inline-block";
-
-    } else {
-
-        buttonText.textContent =
-            "Upload Lecture";
-
-        spinner.style.display =
-            "none";
-    }
-
-}
-
-
-/* =========================
-   LOAD LECTURES
-========================= */
-
-async function loadLectures() {
-
-    const list =
-        document.getElementById("lectureList");
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_URL}/api/lectures/faculty/${encodeURIComponent(
-                    currentUser.email || currentUser.name
-                )}`
+            showMessage(
+                "The upload timed out after 5 minutes. The backend or Cloudinary may still be processing the video. Check the backend console before retrying to avoid uploading a duplicate.",
+                "error"
             );
 
+            const uploadStatus =
+                document.getElementById("uploadStatus");
+
+            if (uploadStatus) {
+                uploadStatus.textContent = "Upload timed out.";
+            }
+
+            resolve();
+        };
+
+        /* ----- Request Aborted ----- */
+
+        xhr.onabort = () => {
+            if (!finish()) return;
+
+            showMessage(
+                "The upload request was interrupted. Check the backend before retrying.",
+                "error"
+            );
+
+            resolve();
+        };
+
+        uploadInProgress = true;
+        setLoading(true);
+        clearMessage();
+
+        const progressContainer =
+            document.getElementById("progressContainer");
+
+        const progressBar =
+            document.getElementById("uploadProgress");
+
+        const uploadStatus =
+            document.getElementById("uploadStatus");
+
+        if (progressContainer) {
+            progressContainer.style.display = "block";
+        }
+
+        if (progressBar) {
+            progressBar.style.width = "0%";
+            progressBar.textContent = "0%";
+            progressBar.setAttribute("aria-valuenow", "0");
+        }
+
+        if (uploadStatus) {
+            uploadStatus.textContent = "Preparing video upload...";
+        }
+
+        try {
+            // Do not manually set Content-Type for FormData.
+            // The browser must add the multipart boundary itself.
+            xhr.send(formData);
+        } catch (error) {
+            finish();
+
+            showMessage(
+                `Could not start upload: ${error.message}`,
+                "error"
+            );
+
+            resolve();
+        }
+    });
+}
+
+/* =========================================
+   LOADING STATE
+========================================= */
+
+function setLoading(loading) {
+    const button = document.getElementById("uploadBtn");
+    const buttonText = document.getElementById("uploadBtnText");
+    const spinner = document.getElementById("uploadSpinner");
+
+    if (button) {
+        button.disabled = loading;
+    }
+
+    if (buttonText) {
+        buttonText.textContent = loading
+            ? "Uploading..."
+            : "Upload Lecture";
+    }
+
+    if (spinner) {
+        spinner.style.display = loading
+            ? "inline-block"
+            : "none";
+    }
+}
+
+/* =========================================
+   LOAD FACULTY LECTURES
+========================================= */
+
+async function loadLectures() {
+    const list = document.getElementById("lectureList");
+
+    if (!list || !currentUser) return;
+
+    list.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <h4>Loading lectures...</h4>
+        </div>
+    `;
+
+    try {
+        const uploadedBy = currentUser.email || currentUser.name;
+
+        const response = await fetch(
+            `${API_URL}/lectures/faculty/${encodeURIComponent(uploadedBy)}`,
+            {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
 
         if (!response.ok) {
             throw new Error(
-                "Failed to load lectures"
+                `Server returned HTTP ${response.status}.`
             );
         }
 
+        const result = await response.json();
 
-        const lectures =
-            await response.json();
-
+        const lectures = Array.isArray(result)
+            ? result
+            : Array.isArray(result.content)
+                ? result.content
+                : Array.isArray(result.data)
+                    ? result.data
+                    : [];
 
         displayLectures(lectures);
-
     } catch (error) {
-
-        console.error(error);
+        console.error("Unable to load faculty lectures:", error);
 
         list.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
                 <h4>Unable to load lectures</h4>
-                <p>Make sure the backend is running.</p>
+                <p>Check your backend connection and try refreshing.</p>
             </div>
         `;
-
     }
-
 }
 
-
-/* =========================
-   DISPLAY LECTURES
-========================= */
+/* =========================================
+   DISPLAY FACULTY LECTURES
+========================================= */
 
 function displayLectures(lectures) {
+    const list = document.getElementById("lectureList");
 
-    const list =
-        document.getElementById("lectureList");
+    if (!list) return;
 
+    const validLectures = Array.isArray(lectures) ? lectures : [];
 
-    document.getElementById(
-        "totalLectures"
-    ).textContent = lectures.length;
+    const totalLectures = document.getElementById("totalLectures");
+    const uploadedVideos = document.getElementById("uploadedVideos");
+    const subjectCount = document.getElementById("subjectCount");
 
+    if (totalLectures) {
+        totalLectures.textContent = validLectures.length;
+    }
 
-    document.getElementById(
-        "uploadedVideos"
-    ).textContent = lectures.length;
+    if (uploadedVideos) {
+        uploadedVideos.textContent = validLectures.length;
+    }
 
+    const subjects = new Set(
+        validLectures
+            .map(lecture => String(lecture.subject || "").trim())
+            .filter(Boolean)
+    );
 
-    const subjects =
-        new Set(
-            lectures.map(
-                lecture => lecture.subject
-            )
-        );
+    if (subjectCount) {
+        subjectCount.textContent = subjects.size;
+    }
 
-
-    document.getElementById(
-        "subjectCount"
-    ).textContent = subjects.size;
-
-
-    if (!lectures.length) {
-
+    if (validLectures.length === 0) {
         list.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🎥</div>
                 <h4>No lectures uploaded yet</h4>
-                <p>
-                    Your uploaded lectures will appear here.
-                </p>
+                <p>Your uploaded lectures will appear here.</p>
             </div>
         `;
-
         return;
     }
-
 
     list.innerHTML = "";
 
-
-    lectures
-        .sort(
-            (a, b) =>
-                a.lectureNumber - b.lectureNumber
-        )
+    [...validLectures]
+        .sort((a, b) => Number(a.lectureNumber) - Number(b.lectureNumber))
         .forEach(lecture => {
+            const item = document.createElement("div");
+            item.className = "lecture-item";
 
-            const item =
-                document.createElement("div");
+            const lectureId = String(lecture.id ?? lecture._id ?? "");
 
-            item.className =
-                "lecture-item";
+            const info = document.createElement("div");
+            info.className = "lecture-info";
 
+            const heading = document.createElement("h4");
+            heading.textContent =
+                `Lecture ${lecture.lectureNumber ?? "—"}: ${lecture.title || "Untitled Lecture"}`;
 
-            item.innerHTML = `
+            const meta = document.createElement("div");
+            meta.className = "lecture-meta";
+            meta.textContent =
+                `${lecture.subject || "General"} • Unit ${lecture.unit ?? "—"}`;
 
-                <div class="lecture-info">
+            info.append(heading, meta);
 
-                    <h4>
-                        Lecture ${lecture.lectureNumber}:
-                        ${escapeHtml(lecture.title)}
-                    </h4>
+            const actions = document.createElement("div");
+            actions.className = "lecture-actions";
 
-                    <div class="lecture-meta">
+            if (lecture.videoUrl) {
+                const watchLink = document.createElement("a");
+                watchLink.className = "watch-btn";
+                watchLink.href = lecture.videoUrl;
+                watchLink.target = "_blank";
+                watchLink.rel = "noopener noreferrer";
+                watchLink.textContent = "▶ Watch";
+                actions.appendChild(watchLink);
+            }
 
-                        ${escapeHtml(lecture.subject)}
-                        •
-                        ${escapeHtml(lecture.unit)}
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-btn";
+            deleteButton.type = "button";
+            deleteButton.dataset.action = "delete";
+            deleteButton.dataset.id = lectureId;
+            deleteButton.textContent = "Delete";
+            actions.appendChild(deleteButton);
 
-                    </div>
-
-                </div>
-
-
-                <div class="lecture-actions">
-
-                    <a
-                        class="watch-btn"
-                        href="${lecture.videoUrl}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        ▶ Watch
-                    </a>
-
-
-                    <button
-                        class="delete-btn"
-                        onclick="deleteLecture('${lecture.id}')"
-                    >
-                        Delete
-                    </button>
-
-                </div>
-            `;
-
-
+            item.append(info, actions);
             list.appendChild(item);
-
         });
-
 }
 
-
-/* =========================
-   DELETE
-========================= */
+/* =========================================
+   DELETE LECTURE
+========================================= */
 
 async function deleteLecture(id) {
-
-    const confirmed =
-        confirm(
-            "Are you sure you want to delete this lecture?"
-        );
-
-
-    if (!confirmed) {
+    if (!id) {
+        showMessage("Lecture ID is missing.", "error");
         return;
     }
 
+    const confirmed = confirm(
+        "Are you sure you want to delete this lecture?"
+    );
+
+    if (!confirmed) return;
 
     try {
+        const response = await fetch(
+            `${API_URL}/lectures/${encodeURIComponent(id)}`,
+            {
+                method: "DELETE"
+            }
+        );
 
-        const response =
-            await fetch(
-                `${API_URL}/api/lectures/${id}`,
-                {
-                    method: "DELETE"
-                }
-            );
-
-
-        const result =
-            await response.text();
-
+        const result = await response.text();
 
         if (!response.ok) {
-            throw new Error(result);
+            throw new Error(result || `HTTP ${response.status}`);
         }
 
-
-        showMessage(
-            "Lecture deleted successfully.",
-            "success"
-        );
-
-
-        loadLectures();
-
+        showMessage("Lecture deleted successfully.", "success");
+        await loadLectures();
     } catch (error) {
+        console.error("Delete failed:", error);
 
         showMessage(
-            error.message ||
-            "Unable to delete lecture.",
+            error.message || "Unable to delete lecture.",
             "error"
         );
-
     }
-
 }
 
+function setupLectureListActions() {
+    const list = document.getElementById("lectureList");
 
-/* =========================
+    if (!list) return;
+
+    list.addEventListener("click", event => {
+        const button = event.target.closest('[data-action="delete"]');
+
+        if (button) {
+            deleteLecture(button.dataset.id);
+        }
+    });
+}
+
+/* =========================================
    LOGOUT
-========================= */
+========================================= */
 
 function setupLogout() {
+    const logoutButton = document.getElementById("logoutBtn");
 
-    document
-        .getElementById("logoutBtn")
-        .addEventListener("click", () => {
+    if (!logoutButton) return;
 
-            localStorage.removeItem(
-                "adhyayUser"
-            );
-
-            window.location.href =
-                "login.html";
-
-        });
-
+    logoutButton.addEventListener("click", () => {
+        localStorage.removeItem("adhyayUser");
+        window.location.href = "login.html";
+    });
 }
 
+/* =========================================
+   MESSAGES
+========================================= */
 
-/* =========================
-   MESSAGE
-========================= */
+function showMessage(message, type = "info") {
+    const element = document.getElementById("message");
 
-function showMessage(message, type) {
-
-    const element =
-        document.getElementById("message");
-
-
-    element.textContent = message;
-
-    element.className =
-        `message ${type}`;
-
-
-    setTimeout(() => {
-
-        element.className =
-            "message";
-
-        element.textContent =
-            "";
-
-    }, 6000);
-
-}
-
-
-/* =========================
-   HTML SAFETY
-========================= */
-
-function escapeHtml(value) {
-
-    if (!value) {
-        return "";
+    if (!element) {
+        console.log(message);
+        return;
     }
 
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    element.textContent = message;
+    element.className = `message ${type}`;
+}
+
+function clearMessage() {
+    const element = document.getElementById("message");
+
+    if (!element) return;
+
+    element.textContent = "";
+    element.className = "message";
+}
+
+/* =========================================
+   ERROR RESPONSE PARSER
+========================================= */
+
+function parseServerError(responseText) {
+    if (!responseText) {
+        return "The server did not provide an error message.";
+    }
+
+    try {
+        const parsed = JSON.parse(responseText);
+
+        if (typeof parsed === "string") {
+            return parsed;
+        }
+
+        return (
+            parsed.message ||
+            parsed.error ||
+            parsed.detail ||
+            parsed.title ||
+            responseText
+        );
+    } catch {
+        return responseText;
+    }
 }

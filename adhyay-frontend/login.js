@@ -2,7 +2,7 @@
 // ADHYAY LOGIN SYSTEM
 // =====================================================
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = "http://localhost:8081/api/auth";
 
 
 // =====================================================
@@ -571,7 +571,7 @@ if (loginForm) {
                     loginMessage,
 
                     "Cannot connect to ADHYAY backend. " +
-                    "Make sure Spring Boot is running on port 8080.",
+                    "Make sure Spring Boot is running on port 8081.",
 
                     "error"
                 );

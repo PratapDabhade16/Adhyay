@@ -1,236 +1,269 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b7771">
 
     <title>ADHYAY | Student Dashboard</title>
-
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
     <link rel="stylesheet" href="student-dashboard.css">
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg dashboard-nav">
-    <div class="container-fluid px-4">
-
-        <a class="navbar-brand" href="#">
-            <span class="brand-icon">A</span>
-            ADHYAY
+    <!-- Navigation Bar -->
+    <nav class="topbar">
+        <a class="brand" href="index.html" aria-label="ADHYAY Home">
+            <span class="brand-mark">A</span>
+            <span>
+                ADHYAY
+                <small>Your Learning. Your Chapters.</small>
+            </span>
         </a>
 
-        <div class="d-flex align-items-center gap-3">
-
-            <div class="student-info">
+        <div class="top-actions">
+            <span class="user-chip">
+                <span class="avatar" id="avatarInitial">S</span>
                 <span id="studentName">Student</span>
+            </span>
+
+            <button class="btn btn-outline" id="logoutBtn" type="button">
+                Log out
+            </button>
+        </div>
+    </nav>
+
+    <main class="page-wrap">
+
+        <!-- Welcome Section -->
+        <section class="welcome-panel">
+            <div class="welcome-copy">
+                <p class="eyebrow">STUDENT SPACE</p>
+
+                <h1>
+                    Welcome back,
+                    <span id="welcomeName">Student</span>
+                    <span aria-hidden="true">👋</span>
+                </h1>
+
+                <p>
+                    Your next chapter starts here. Pick up where you left off
+                    or explore your lectures.
+                </p>
             </div>
 
-            <button class="logout-btn" onclick="logout()">
-                Logout
+            <div class="welcome-art" aria-hidden="true">
+                <div class="art-ring ring-one"></div>
+                <div class="art-ring ring-two"></div>
+                <div class="book-emoji">▤</div>
+                <span class="spark spark-one">✦</span>
+                <span class="spark spark-two">✧</span>
+            </div>
+        </section>
+
+        <!-- Learning Statistics -->
+        <section class="stats-grid" aria-label="Learning summary">
+
+            <article class="stat-card">
+                <span class="stat-icon mint">▤</span>
+                <div>
+                    <p>Available lectures</p>
+                    <strong id="lectureCount">—</strong>
+                    <small>Across all subjects</small>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <span class="stat-icon blue">▣</span>
+                <div>
+                    <p>Subjects</p>
+                    <strong id="subjectCount">—</strong>
+                    <small>Based on uploaded lectures</small>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <span class="stat-icon purple">▶</span>
+                <div>
+                    <p>Started learning</p>
+                    <strong id="startedCount">0</strong>
+                    <small>Lectures in your history</small>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <span class="stat-icon amber">♡</span>
+                <div>
+                    <p>Bookmarks</p>
+                    <strong id="bookmarkCount">0</strong>
+                    <small>Saved for later</small>
+                </div>
+            </article>
+
+        </section>
+
+        <!-- Search and Filters -->
+        <section class="toolbar" aria-label="Search and filter lectures">
+
+            <div class="search-field">
+                <span aria-hidden="true">⌕</span>
+
+                <input
+                    id="lectureSearch"
+                    type="search"
+                    placeholder="Search lectures, subjects or units…"
+                    autocomplete="off"
+                    aria-label="Search lectures"
+                >
+            </div>
+
+            <select id="subjectFilter" aria-label="Filter by subject">
+                <option value="all">All subjects</option>
+            </select>
+
+            <button
+                class="btn btn-soft"
+                id="showBookmarksBtn"
+                type="button"
+                aria-pressed="false"
+            >
+                ♡ Saved lectures
             </button>
+
+        </section>
+
+        <!-- Continue Watching -->
+        <section class="content-section" id="continueSection">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p>
+                    <h2>Continue watching</h2>
+                </div>
+
+                <span class="section-note">Saved on this device</span>
+            </div>
+
+            <div id="continueGrid" class="lecture-grid">
+                <div class="loading-card">
+                    Loading your learning history…
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Explore Lectures -->
+        <section class="content-section" id="subjectsSection">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">YOUR COURSE LIBRARY</p>
+                    <h2>Explore lectures</h2>
+
+                    <p class="section-subtitle">
+                        Browse recorded classes uploaded by your faculty.
+                    </p>
+                </div>
+
+                <span class="result-count" id="resultCount"></span>
+            </div>
+
+            <div id="lecturesGrid" class="lecture-grid">
+                <div class="loading-card">
+                    Loading lectures…
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Saved Lectures -->
+        <section class="content-section" id="bookmarksSection" hidden>
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">KEEP THESE CLOSE</p>
+                    <h2>Your saved lectures</h2>
+                </div>
+
+                <button class="text-button" id="backToAllBtn" type="button">
+                    Back to all lectures →
+                </button>
+            </div>
+
+            <div id="bookmarksGrid" class="lecture-grid"></div>
+
+        </section>
+
+        <!-- Status Messages -->
+        <div
+            id="pageMessage"
+            class="page-message"
+            role="status"
+            aria-live="polite"
+        ></div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <span class="footer-brand">ADHYAY</span>
+        <span>Your Learning. Your Chapters.</span>
+        <span>© 2026 ADHYAY</span>
+    </footer>
+
+    <!-- Video Player Modal -->
+    <div
+        class="video-modal"
+        id="videoModal"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="playerTitle"
+    >
+
+        <div
+            class="modal-backdrop"
+            data-close-modal="true"
+        ></div>
+
+        <div class="modal-panel">
+
+            <div class="modal-heading">
+                <div>
+                    <p class="eyebrow">NOW PLAYING</p>
+                    <h2 id="playerTitle">Lecture</h2>
+                    <p id="playerMeta"></p>
+                </div>
+
+                <button
+                    class="close-btn"
+                    id="closePlayerBtn"
+                    type="button"
+                    aria-label="Close video player"
+                >
+                    ×
+                </button>
+            </div>
+
+            <video
+                id="lecturePlayer"
+                controls
+                playsinline
+                preload="metadata"
+            ></video>
+
+            <p class="player-note">
+                Your playback position is saved on this device so you can
+                continue later.
+            </p>
 
         </div>
     </div>
-</nav>
 
-
-<!-- MAIN -->
-<main class="container-fluid dashboard-container">
-
-    <!-- WELCOME -->
-    <section class="welcome-section">
-
-        <div>
-            <p class="small-label">STUDENT DASHBOARD</p>
-
-            <h1>
-                Welcome back,
-                <span id="welcomeName">Student</span> 👋
-            </h1>
-
-            <p>
-                Continue your learning journey and access your recorded lectures.
-            </p>
-        </div>
-
-        <div class="learning-badge">
-            <span>Learning Progress</span>
-            <strong>0%</strong>
-        </div>
-
-    </section>
-
-
-    <!-- SEARCH -->
-    <section class="search-section">
-
-        <div class="search-box">
-            <span>🔍</span>
-
-            <input
-                type="text"
-                id="lectureSearch"
-                placeholder="Search subjects or lectures..."
-                onkeyup="searchLectures()">
-        </div>
-
-    </section>
-
-
-    <!-- QUICK STATS -->
-    <section class="stats-grid">
-
-        <div class="stat-card">
-            <div class="stat-icon">📚</div>
-            <div>
-                <span>Subjects</span>
-                <strong>0</strong>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">🎥</div>
-            <div>
-                <span>Lectures Watched</span>
-                <strong>0</strong>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">⏱️</div>
-            <div>
-                <span>Learning Hours</span>
-                <strong>0</strong>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">🔖</div>
-            <div>
-                <span>Bookmarks</span>
-                <strong>0</strong>
-            </div>
-        </div>
-
-    </section>
-
-
-    <!-- CONTINUE WATCHING -->
-    <section class="dashboard-section">
-
-        <div class="section-heading">
-            <div>
-                <p class="small-label">YOUR LEARNING</p>
-                <h2>Continue Watching</h2>
-            </div>
-
-            <button class="view-btn">
-                View All
-            </button>
-        </div>
-
-        <div class="empty-card">
-
-            <div class="empty-icon">🎬</div>
-
-            <h3>No lectures started yet</h3>
-
-            <p>
-                Your recently watched lectures will appear here.
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <!-- SUBJECTS -->
-    <section class="dashboard-section">
-
-        <div class="section-heading">
-
-            <div>
-                <p class="small-label">COURSE CONTENT</p>
-                <h2>My Subjects</h2>
-            </div>
-
-            <button class="view-btn">
-                View All
-            </button>
-
-        </div>
-
-
-        <div id="subjectsContainer" class="subject-grid">
-
-            <div class="empty-card">
-
-                <div class="empty-icon">📚</div>
-
-                <h3>No subjects available</h3>
-
-                <p>
-                    Subjects and recorded lectures will appear here.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- BOOKMARKS + QUESTIONS -->
-    <section class="two-column-section">
-
-        <div class="dashboard-section">
-
-            <div class="section-heading">
-                <div>
-                    <p class="small-label">SAVED</p>
-                    <h2>Bookmarks</h2>
-                </div>
-            </div>
-
-            <div class="mini-empty">
-                🔖
-                <p>No bookmarked lectures yet.</p>
-            </div>
-
-        </div>
-
-
-        <div class="dashboard-section">
-
-            <div class="section-heading">
-                <div>
-                    <p class="small-label">DISCUSSION</p>
-                    <h2>Recent Questions</h2>
-                </div>
-            </div>
-
-            <div class="mini-empty">
-                💬
-                <p>Your questions will appear here.</p>
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-<footer>
-    <p>© 2026 ADHYAY — Your Learning. Your Chapters.</p>
-</footer>
-
-
-<script src="student-dashboard.js"></script>
+    <!-- JavaScript -->
+    <script src="student-dashboard.js"></script>
 
 </body>
 </html>
