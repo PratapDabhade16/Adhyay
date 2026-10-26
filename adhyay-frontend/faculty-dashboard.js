@@ -15,8 +15,11 @@ let uploadInProgress = false;
    PAGE INITIALIZATION
 ========================================= */
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const storedUser = localStorage.getItem("adhyayUser");
+document.addEventListener("DOMContentLoaded", () => {
+    loadLectures();
+    loadUsers("STUDENT", "student-records");
+    loadUsers("FACULTY", "faculty-records");
+});
 
     if (!storedUser) {
         window.location.href = "login.html";

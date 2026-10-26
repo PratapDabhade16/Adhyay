@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,10 +12,7 @@
         rel="stylesheet"
     >
 
-    <link
-        rel="stylesheet"
-        href="faculty-dashboard.css"
-    >
+    <link rel="stylesheet" href="faculty-dashboard.css">
 </head>
 
 <body>
@@ -29,30 +27,24 @@
         </a>
 
         <div class="d-flex align-items-center gap-3">
-
             <div class="faculty-info">
                 <span class="small-text">Faculty</span>
                 <span id="facultyName">Faculty</span>
             </div>
 
-            <button
-                class="btn logout-btn"
-                id="logoutBtn">
+            <button class="btn logout-btn" id="logoutBtn">
                 Logout
             </button>
-
         </div>
 
     </div>
 </nav>
-
 
 <!-- MAIN CONTENT -->
 <div class="container-fluid dashboard-container">
 
     <!-- HEADER -->
     <div class="dashboard-header">
-
         <div>
             <p class="welcome-text">FACULTY DASHBOARD</p>
 
@@ -64,96 +56,63 @@
                 Upload and manage your recorded lectures.
             </p>
         </div>
-
     </div>
-
 
     <!-- STATS -->
     <div class="row g-4 mb-4">
 
         <div class="col-md-4">
-
             <div class="stat-card">
-
                 <div class="stat-icon">📚</div>
-
                 <div>
                     <span>Total Lectures</span>
                     <h2 id="totalLectures">0</h2>
                 </div>
-
             </div>
-
         </div>
 
-
         <div class="col-md-4">
-
             <div class="stat-card">
-
                 <div class="stat-icon">🎥</div>
-
                 <div>
                     <span>Uploaded Videos</span>
                     <h2 id="uploadedVideos">0</h2>
                 </div>
-
             </div>
-
         </div>
 
-
         <div class="col-md-4">
-
             <div class="stat-card">
-
                 <div class="stat-icon">📖</div>
-
                 <div>
                     <span>Subjects</span>
                     <h2 id="subjectCount">0</h2>
                 </div>
-
             </div>
-
         </div>
 
     </div>
-
 
     <!-- UPLOAD SECTION -->
     <div class="main-card">
 
         <div class="card-header-custom">
-
             <div>
                 <p class="section-label">LECTURE MANAGEMENT</p>
-
                 <h2>Upload Lecture</h2>
-
                 <p>
                     Upload your recorded lecture directly to ADHYAY.
                 </p>
             </div>
 
-            <div class="upload-symbol">
-                ↑
-            </div>
-
+            <div class="upload-symbol">↑</div>
         </div>
 
-
         <form id="uploadForm">
-
             <div class="row g-4">
 
-                <!-- TITLE -->
                 <div class="col-md-6">
-
-                    <label for="title">
-                        Lecture Title *
-                    </label>
-
+                    <label for="title">Lecture Title *</label>
                     <input
                         type="text"
                         id="title"
@@ -161,17 +120,10 @@
                         placeholder="e.g. Introduction to MPI"
                         required
                     >
-
                 </div>
 
-
-                <!-- SUBJECT -->
                 <div class="col-md-6">
-
-                    <label for="subject">
-                        Subject *
-                    </label>
-
+                    <label for="subject">Subject *</label>
                     <input
                         type="text"
                         id="subject"
@@ -179,42 +131,22 @@
                         placeholder="e.g. Parallel Computing"
                         required
                     >
-
                 </div>
 
-
-                <!-- UNIT -->
                 <div class="col-md-4">
-
-                    <label for="unit">
-                        Unit *
-                    </label>
-
-                    <select
-                        id="unit"
-                        class="form-select"
-                        required
-                    >
-
+                    <label for="unit">Unit *</label>
+                    <select id="unit" class="form-select" required>
                         <option value="">Select Unit</option>
                         <option value="Unit 1">Unit 1</option>
                         <option value="Unit 2">Unit 2</option>
                         <option value="Unit 3">Unit 3</option>
                         <option value="Unit 4">Unit 4</option>
                         <option value="Unit 5">Unit 5</option>
-
                     </select>
-
                 </div>
 
-
-                <!-- LECTURE NUMBER -->
                 <div class="col-md-4">
-
-                    <label for="lectureNumber">
-                        Lecture Number *
-                    </label>
-
+                    <label for="lectureNumber">Lecture Number *</label>
                     <input
                         type="number"
                         id="lectureNumber"
@@ -223,17 +155,10 @@
                         placeholder="1"
                         required
                     >
-
                 </div>
 
-
-                <!-- VIDEO -->
                 <div class="col-md-4">
-
-                    <label for="video">
-                        Lecture Video *
-                    </label>
-
+                    <label for="video">Lecture Video *</label>
                     <input
                         type="file"
                         id="video"
@@ -241,49 +166,30 @@
                         accept="video/*"
                         required
                     >
-
                 </div>
 
-
-                <!-- DESCRIPTION -->
                 <div class="col-12">
-
-                    <label for="description">
-                        Description
-                    </label>
-
+                    <label for="description">Description</label>
                     <textarea
                         id="description"
                         class="form-control"
                         rows="4"
                         placeholder="Briefly describe this lecture..."
                     ></textarea>
-
                 </div>
 
-
-                <!-- SELECTED FILE -->
                 <div class="col-12">
-
-                    <div
-                        class="selected-file"
-                        id="selectedFile"
-                    >
+                    <div class="selected-file" id="selectedFile">
                         No video selected
                     </div>
-
                 </div>
 
-
-                <!-- PROGRESS -->
                 <div
                     class="col-12"
                     id="progressContainer"
                     style="display:none;"
                 >
-
                     <div class="progress">
-
                         <div
                             class="progress-bar"
                             id="uploadProgress"
@@ -292,99 +198,140 @@
                         >
                             0%
                         </div>
-
                     </div>
 
-                    <p
-                        class="upload-status"
-                        id="uploadStatus">
+                    <p class="upload-status" id="uploadStatus">
                         Uploading...
                     </p>
-
                 </div>
 
-
-                <!-- BUTTON -->
                 <div class="col-12">
-
                     <button
                         type="submit"
                         class="upload-btn"
                         id="uploadBtn"
                     >
-
-                        <span id="uploadBtnText">
-                            Upload Lecture
-                        </span>
+                        <span id="uploadBtnText">Upload Lecture</span>
 
                         <span
                             id="uploadSpinner"
                             class="spinner-border spinner-border-sm"
                             style="display:none;"
                         ></span>
-
                     </button>
-
                 </div>
 
             </div>
-
         </form>
 
-        <div
-            id="message"
-            class="message"
-        ></div>
-
+        <div id="message" class="message"></div>
     </div>
-
 
     <!-- LECTURE LIST -->
     <div class="main-card lecture-card">
 
         <div class="card-header-custom">
-
             <div>
-
-                <p class="section-label">
-                    YOUR CONTENT
-                </p>
-
+                <p class="section-label">YOUR CONTENT</p>
                 <h2>Uploaded Lectures</h2>
-
-                <p>
-                    Manage lectures uploaded by you.
-                </p>
-
+                <p>Manage lectures uploaded by you.</p>
             </div>
-
         </div>
 
-
         <div id="lectureList">
-
             <div class="empty-state">
-
-                <div class="empty-icon">
-                    🎥
-                </div>
-
+                <div class="empty-icon">🎥</div>
                 <h4>No lectures uploaded yet</h4>
-
-                <p>
-                    Your uploaded lectures will appear here.
-                </p>
-
+                <p>Your uploaded lectures will appear here.</p>
             </div>
-
         </div>
 
     </div>
 
 </div>
 
-
+<!-- EXISTING FACULTY JAVASCRIPT -->
 <script src="faculty-dashboard.js"></script>
+
+<!-- MOODLE COURSES -->
+<section
+    id="moodle-courses"
+    style="
+        margin: 20px;
+        padding: 24px;
+        border-radius: 12px;
+        background: #f5fbfc;
+        color: #18343b;
+        border: 1px solid #d6e7e9;
+    "
+>
+    <h2 style="color:#18343b; margin-bottom:8px;">
+        Moodle Courses
+    </h2>
+
+    <p style="color:#45636a; margin-bottom:18px;">
+        Courses available in your Moodle site
+    </p>
+
+    <div id="moodle-course-list" style="color:#18343b;">
+        Loading courses...
+    </div>
+</section>
+
+<script>
+(function loadMoodleCourses() {
+    const list = document.getElementById("moodle-course-list");
+
+    fetch("http://localhost:8081/api/moodle/courses")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(
+                    "Request failed with status " + response.status
+                );
+            }
+
+            return response.json();
+        })
+        .then(courses => {
+            list.innerHTML = "";
+
+            if (!Array.isArray(courses) || courses.length === 0) {
+                list.textContent = "No Moodle courses found.";
+                return;
+            }
+
+            courses.forEach(course => {
+                const item = document.createElement("div");
+
+                item.style.cssText = [
+                    "padding:14px 16px",
+                    "margin:10px 0",
+                    "background:#ffffff",
+                    "color:#18343b",
+                    "border:1px solid #cbdde0",
+                    "border-radius:8px",
+                    "font-weight:600",
+                    "box-shadow:0 2px 6px rgba(24,52,59,0.06)"
+                ].join(";");
+
+                item.textContent =
+                    course.fullname ||
+                    course.displayname ||
+                    "Untitled course";
+
+                list.appendChild(item);
+            });
+        })
+        .catch(error => {
+            list.textContent =
+                "Unable to load Moodle courses. Make sure the backend is running and check the browser console.";
+
+            list.style.color = "#9b1c1c";
+
+            console.error("Moodle course loading failed:", error);
+        });
+})();
+</script>
 
 </body>
 </html>
