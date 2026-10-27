@@ -1,702 +1,754 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADHYAY | Next-Generation Lecture & Campus Learning Platform</title>
+  <meta name="description" content="ADHYAY is an institutional lecture management platform for universities and colleges. Catch up on classes, share faculty recordings, and organize campus learning.">
+  <link rel="stylesheet" href="adhyay.css">
+  <style>
+    /* ── Landing Page Specific Styles ── */
+    :root {
+      --hero-glow: rgba(13, 62, 54, 0.08);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
 
-    <title>ADHYAY | Your Learning, Your Chapters</title>
+    /* Navbar */
+    .landing-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(246, 244, 237, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .landing-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-link-item {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: color 0.15s ease;
+    }
+    .nav-link-item:hover {
+      color: var(--green-dark);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    /* Hero Section */
+    .hero-section {
+      padding: 72px 0 64px;
+      position: relative;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--green-chip-bg);
+      color: var(--green-chip-txt);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 22px;
+    }
+    .hero-title {
+      font-size: 52px;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -1.2px;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+    .hero-title span {
+      color: var(--green-dark);
+    }
+    .hero-sub {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-bottom: 32px;
+      max-width: 520px;
+    }
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-hero-primary {
+      padding: 13px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      background: var(--green-dark);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 14px rgba(13, 62, 54, 0.22);
+    }
+    .btn-hero-primary:hover {
+      background: var(--green-mid);
+      transform: translateY(-1px);
+    }
+    .btn-hero-outline {
+      padding: 12px 26px;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid #D1D5DB;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .btn-hero-outline:hover {
+      border-color: var(--green-dark);
+      color: var(--green-dark);
+    }
 
-    <link rel="stylesheet" href="style.css">
+    /* Hero Interactive Preview Card */
+    .hero-preview-wrapper {
+      position: relative;
+    }
+    .preview-card-glow {
+      position: absolute;
+      inset: -20px;
+      background: radial-gradient(circle, rgba(13, 62, 54, 0.12) 0%, transparent 70%);
+      z-index: 0;
+      border-radius: 32px;
+    }
+    .hero-preview-card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.08);
+      transform: rotate(0.5deg);
+      transition: transform 0.3s ease;
+    }
+    .hero-preview-card:hover {
+      transform: rotate(0deg) translateY(-4px);
+    }
+    .mock-player {
+      background: #18232C;
+      aspect-ratio: 16/9;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mock-play-btn {
+      width: 54px;
+      height: 54px;
+      background: var(--amber);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #18232C;
+      font-size: 18px;
+      padding-left: 3px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+    .mock-player-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 14px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    }
+    .mock-progress-track {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 99px;
+      margin-bottom: 6px;
+    }
+    .mock-progress-fill {
+      width: 65%;
+      height: 100%;
+      background: var(--amber);
+      border-radius: 99px;
+    }
+    .mock-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: space-between;
+    }
+    .preview-body {
+      padding: 18px 20px;
+    }
+    .preview-badge-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .preview-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .preview-instructor {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 12px;
+    }
+    .preview-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #EBA83A;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      display: grid;
+      place-items: center;
+    }
+    .preview-comment-bubble {
+      background: #F8F9FA;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Stats Strip */
+    .stats-strip {
+      padding: 36px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .stats-strip-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--green-dark);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .stat-caption {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* Roles Section */
+    .roles-section {
+      padding: 80px 0;
+    }
+    .section-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--green-dark);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .section-heading {
+      font-size: 34px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    .section-subheading {
+      font-size: 15px;
+      color: var(--muted);
+      text-align: center;
+      max-width: 580px;
+      margin: 0 auto 52px;
+    }
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .role-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+      border-color: #D1D5DB;
+    }
+    .role-card-badge {
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+    .role-card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .role-card-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 22px;
+      flex: 1;
+    }
+    .role-features {
+      list-style: none;
+      margin-bottom: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .role-feature-item {
+      font-size: 13px;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .role-feature-item::before {
+      content: "✓";
+      color: var(--green-dark);
+      font-weight: 700;
+    }
+    .role-link-btn {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green-dark);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .role-link-btn:hover {
+      text-decoration: underline;
+    }
+
+    /* Moodle Banner Section */
+    .moodle-section {
+      padding: 40px 0 80px;
+    }
+    .moodle-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 42px 48px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+    .moodle-banner-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .moodle-banner-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .moodle-preview-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .moodle-preview-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--bg);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 80px 0 100px;
+    }
+    .cta-card {
+      background: var(--green-dark);
+      border-radius: 24px;
+      padding: 64px 48px;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 20px 48px rgba(13, 62, 54, 0.25);
+    }
+    .cta-heading {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.6px;
+      margin-bottom: 14px;
+    }
+    .cta-sub {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.75);
+      max-width: 540px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-cta-amber {
+      padding: 13px 30px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      background: var(--amber);
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+    .btn-cta-amber:hover {
+      background: #FBBF24;
+      transform: translateY(-1px);
+    }
+
+    /* Footer */
+    .landing-footer {
+      border-top: 1px solid var(--border);
+      padding: 36px 0;
+      background: var(--surface);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .roles-grid { grid-template-columns: 1fr; }
+      .moodle-banner { grid-template-columns: 1fr; }
+      .stats-strip-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-title { font-size: 38px; }
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- ================= NAVBAR ================= -->
-
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-
-    <div class="container">
-
-        <a class="navbar-brand fw-bold" href="index.html">
-            <span class="brand-icon">A</span>
-            ADHYAY
-        </a>
-
-
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-
-            <span class="navbar-toggler-icon"></span>
-
-        </button>
-
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-
-            <ul class="navbar-nav ms-auto align-items-lg-center">
-
-                <li class="nav-item">
-                    <a class="nav-link active" href="#home">
-                        Home
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="#features">
-                        Features
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="#about">
-                        About
-                    </a>
-                </li>
-
-                <!-- LOGIN -->
-
-                <li class="nav-item ms-lg-3">
-
-                    <a href="login.html"
-                       class="btn btn-login">
-
-                        Login
-
-                    </a>
-
-                </li>
-
-            </ul>
-
+  <!-- ================= NAVBAR ================= -->
+  <header class="landing-nav">
+    <div class="landing-container">
+      <div class="nav-inner">
+        
+        <div class="logo-wrap">
+          <div class="logo-mark">A</div>
+          <span class="logo-name">ADHYAY</span>
         </div>
 
+        <nav>
+          <ul class="nav-links">
+            <li><a href="#roles" class="nav-link-item">Roles</a></li>
+            <li><a href="#features" class="nav-link-item">Features</a></li>
+            <li><a href="#moodle" class="nav-link-item">Moodle Sync</a></li>
+          </ul>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="login.html" class="btn-outline">Sign in</a>
+          <a href="login.html" class="btn-primary">Create account</a>
+        </div>
+
+      </div>
     </div>
-
-</nav>
-
-
-
-<!-- ================= HERO ================= -->
-
-<section id="home" class="hero">
-
-    <div class="container">
-
-        <div class="row align-items-center min-vh-100">
-
-            <!-- HERO CONTENT -->
-
-            <div class="col-lg-7">
-
-                <div class="hero-badge">
-                    🎓 Smart Lecture Management System
-                </div>
-
-
-                <h1>
-
-                    Your Learning.
-
-                    <span>
-                        Your Chapters.
-                    </span>
-
-                </h1>
-
-
-                <p class="hero-text">
-
-                    ADHYAY brings your recorded lectures,
-                    learning progress, resources and academic
-                    discussions together in one organized
-                    learning platform.
-
-                </p>
-
-
-                <div class="hero-buttons">
-
-                    <!-- GET STARTED -->
-
-                    <a href="login.html"
-                       class="btn btn-primary-custom">
-
-                        Get Started
-
-                    </a>
-
-
-                    <a href="#features"
-                       class="btn btn-outline-custom">
-
-                        Explore Features
-
-                    </a>
-
-                </div>
-
-
-                <!-- STATS -->
-
-                <div class="hero-stats">
-
-                    <div>
-
-                        <strong>
-                            3
-                        </strong>
-
-                        <small>
-                            Portals
-                        </small>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            24/7
-                        </strong>
-
-                        <small>
-                            Access
-                        </small>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            100%
-                        </strong>
-
-                        <small>
-                            Organized
-                        </small>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- HERO DASHBOARD -->
-
-            <div class="col-lg-5">
-
-                <div class="learning-card">
-
-
-                    <!-- CARD HEADER -->
-
-                    <div class="card-header-custom">
-
-                        <div>
-
-                            <small>
-                                WELCOME BACK
-                            </small>
-
-                            <h5>
-                                Learning Dashboard
-                            </h5>
-
-                        </div>
-
-
-                        <div class="profile-circle">
-                            👩🏻‍💻
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- PROGRESS -->
-
-                    <div class="progress-card">
-
-                        <div class="progress-info">
-
-                            <span>
-                                Overall Progress
-                            </span>
-
-                            <strong>
-                                72%
-                            </strong>
-
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div class="progress-bar"
-                                 style="width:72%">
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- CURRENT LECTURE -->
-
-                    <div class="lecture-card">
-
-                        <div class="lecture-icon">
-                            ▶
-                        </div>
-
-
-                        <div>
-
-                            <small>
-                                Currently Learning
-                            </small>
-
-                            <h6>
-                                Data Structures
-                            </h6>
-
-                            <span>
-                                Unit 3 • Lecture 05
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- NEXT LECTURE -->
-
-                    <div class="lecture-card">
-
-                        <div class="lecture-icon secondary">
-                            📚
-                        </div>
-
-
-                        <div>
-
-                            <small>
-                                Next Lecture
-                            </small>
-
-                            <h6>
-                                Operating Systems
-                            </h6>
-
-                            <span>
-                                Unit 2 • Lecture 03
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="hero-section">
+    <div class="landing-container">
+      <div class="hero-grid">
+
+        <!-- Left Copy -->
+        <div>
+          <div class="pill-badge">
+            <span>🎓</span>
+            <span>Next-Gen Campus Lecture Platform</span>
+          </div>
+
+          <h1 class="hero-title">
+            Never miss a class.<br>
+            <span>Your lectures, organized.</span>
+          </h1>
+
+          <p class="hero-sub">
+            ADHYAY empowers colleges and universities with seamless lecture recording management, organized unit-wise playlists, student discussions, and direct Moodle course synchronization.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="login.html" class="btn-hero-primary">
+              <span>Get started free</span>
+              <span>→</span>
+            </a>
+            <a href="login.html" class="btn-hero-outline">
+              Sign in to class
+            </a>
+          </div>
         </div>
 
+        <!-- Right Live Preview Card -->
+        <div class="hero-preview-wrapper">
+          <div class="preview-card-glow"></div>
+          <div class="hero-preview-card">
+            
+            <div class="mock-player">
+              <div class="mock-play-btn">▶</div>
+              <div class="mock-player-bar">
+                <div class="mock-progress-track">
+                  <div class="mock-progress-fill"></div>
+                </div>
+                <div class="mock-time">
+                  <span>24:10 / 37:45</span>
+                  <span>Theater · Fullscreen</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="preview-body">
+              <div class="preview-badge-row">
+                <span class="chip chip-green">Data Structures · Unit 3</span>
+              </div>
+              <div class="preview-title">Trees and Traversals</div>
+
+              <div class="preview-instructor">
+                <div class="preview-avatar">F</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;">Faculty Instructor</div>
+                  <div style="font-size:11px;color:var(--muted);">Department of Information Technology</div>
+                </div>
+              </div>
+
+              <div class="preview-comment-bubble">
+                <span>💬</span>
+                <span>"Could you explain why the postorder traversal visits the root last?"</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
     </div>
+  </section>
 
-</section>
-
-
-
-<!-- ================= FEATURES ================= -->
-
-<section id="features"
-         class="features-section">
-
-    <div class="container">
-
-
-        <!-- SECTION HEADING -->
-
-        <div class="section-heading">
-
-            <span>
-                WHAT ADHYAY OFFERS
-            </span>
-
-
-            <h2>
-
-                Everything you need to
-
-                <span>
-                    learn better.
-                </span>
-
-            </h2>
-
-
-            <p>
-
-                A centralized platform designed to make
-                recorded learning simple, organized and
-                accessible.
-
-            </p>
-
+  <!-- ================= METRICS STRIP ================= -->
+  <section class="stats-strip">
+    <div class="landing-container">
+      <div class="stats-strip-grid">
+        <div>
+          <div class="stat-number">100%</div>
+          <div class="stat-caption">Institutional Curriculum Alignment</div>
         </div>
-
-
-
-        <div class="row g-4">
-
-
-            <!-- FEATURE 1 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        🎥
-                    </div>
-
-                    <h4>
-                        Recorded Lectures
-                    </h4>
-
-                    <p>
-
-                        Access lectures organized by subject,
-                        unit and lecture number whenever
-                        you need them.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- FEATURE 2 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        📈
-                    </div>
-
-                    <h4>
-                        Track Progress
-                    </h4>
-
-                    <p>
-
-                        Resume lectures from where you stopped
-                        and keep track of your learning progress.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- FEATURE 3 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        💬
-                    </div>
-
-                    <h4>
-                        Ask & Discuss
-                    </h4>
-
-                    <p>
-
-                        Ask questions about lectures and interact
-                        with faculty through comments and replies.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- FEATURE 4 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        🔖
-                    </div>
-
-                    <h4>
-                        Bookmarks & Resources
-                    </h4>
-
-                    <p>
-
-                        Save important lectures and learning
-                        resources for quick access later.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- FEATURE 5 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        👨‍🏫
-                    </div>
-
-                    <h4>
-                        Faculty Management
-                    </h4>
-
-                    <p>
-
-                        Faculty can upload, organize and manage
-                        lectures in one centralized system.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- FEATURE 6 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        🛠️
-                    </div>
-
-                    <h4>
-                        Admin Control
-                    </h4>
-
-                    <p>
-
-                        Administrators can manage users,
-                        subjects, lectures and system analytics.
-
-                    </p>
-
-                </div>
-
-            </div>
-
+        <div>
+          <div class="stat-number">4K+</div>
+          <div class="stat-caption">Cloud Video Processing (Cloudinary)</div>
         </div>
-
+        <div>
+          <div class="stat-number">0.5s</div>
+          <div class="stat-caption">Fast Instant Playback & Resume</div>
+        </div>
+        <div>
+          <div class="stat-number">24/7</div>
+          <div class="stat-caption">Campus Doubts & Q&A Discussion</div>
+        </div>
+      </div>
     </div>
+  </section>
 
-</section>
+  <!-- ================= ROLES SECTION ================= -->
+  <section class="roles-section" id="roles">
+    <div class="landing-container">
+      <div class="section-eyebrow">Campus Ecosystem</div>
+      <h2 class="section-heading">Designed for everyone in your institution</h2>
+      <p class="section-subheading">Tailored workspaces for students, educators, and administrators to streamline academic lecture delivery.</p>
 
-
-
-<!-- ================= ABOUT ================= -->
-
-<section id="about"
-         class="about-section">
-
-    <div class="container">
-
-        <div class="row align-items-center g-5">
-
-
-            <!-- VISUAL -->
-
-            <div class="col-lg-6">
-
-                <div class="about-visual">
-
-
-                    <div class="floating-card card-one">
-
-                        🎥 Lecture Library
-
-                    </div>
-
-
-                    <div class="about-main">
-
-                        <div class="about-logo">
-                            A
-                        </div>
-
-                        <h3>
-                            ADHYAY
-                        </h3>
-
-                        <p>
-                            Your Learning, Your Chapters.
-                        </p>
-
-                    </div>
-
-
-                    <div class="floating-card card-two">
-
-                        📊 Learning Progress
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- ABOUT CONTENT -->
-
-            <div class="col-lg-6">
-
-                <div class="section-heading text-start">
-
-                    <span>
-                        ABOUT ADHYAY
-                    </span>
-
-
-                    <h2>
-
-                        Learn at your own
-
-                        <span>
-                            pace.
-                        </span>
-
-                    </h2>
-
-
-                    <p>
-
-                        ADHYAY is a lecture capture and management
-                        system designed to give students convenient
-                        access to recorded academic content while
-                        helping faculty organize and manage lectures.
-
-                    </p>
-
-
-                    <p>
-
-                        Whether you missed a lecture or simply want
-                        to revise a topic, ADHYAY keeps your learning
-                        material structured and accessible.
-
-                    </p>
-
-
-                    <!-- START LEARNING -->
-
-                    <a href="login.html"
-                       class="btn btn-primary-custom">
-
-                        Start Learning
-
-                    </a>
-
-                </div>
-
-            </div>
-
+      <div class="roles-grid">
+        
+        <!-- Student Card -->
+        <div class="role-card">
+          <div class="role-card-badge">
+            <span class="chip chip-green">For Students</span>
+          </div>
+          <h3 class="role-card-title">Learn & Catch Up</h3>
+          <p class="role-card-desc">Browse lectures by enrolled subject and unit. Resume video where you left off, bookmark important sessions, and post doubts directly under lectures.</p>
+          <ul class="role-features">
+            <li class="role-feature-item">Subject & unit organized navigation</li>
+            <li class="role-feature-item">Real-time playback progress tracking</li>
+            <li class="role-feature-item">Doubt comments & discussion threads</li>
+            <li class="role-feature-item">Personal saved lectures list</li>
+          </ul>
+          <a href="login.html" class="role-link-btn">Access Student Dashboard →</a>
         </div>
 
-    </div>
-
-</section>
-
-
-
-<!-- ================= FOOTER ================= -->
-
-<footer>
-
-    <div class="container">
-
-        <div class="footer-content">
-
-
-            <div>
-
-                <h4>
-
-                    <span class="brand-icon">
-                        A
-                    </span>
-
-                    ADHYAY
-
-                </h4>
-
-
-                <p>
-                    Your Learning, Your Chapters.
-                </p>
-
-            </div>
-
-
-            <div class="footer-right">
-
-                © 2026 ADHYAY.
-                All Rights Reserved.
-
-            </div>
-
+        <!-- Faculty Card -->
+        <div class="role-card">
+          <div class="role-card-badge">
+            <span class="chip chip-amber">For Faculty</span>
+          </div>
+          <h3 class="role-card-title">Upload & Teach</h3>
+          <p class="role-card-desc">Drag and drop class recordings with automated cloud upload. Assign subjects, unit numbers, and sync courses directly with your Moodle LMS.</p>
+          <ul class="role-features">
+            <li class="role-feature-item">Drag & drop video uploading</li>
+            <li class="role-feature-item">Live percentage upload progress</li>
+            <li class="role-feature-item">Institutional Moodle course sync</li>
+            <li class="role-feature-item">Lecture management & deletion</li>
+          </ul>
+          <a href="login.html" class="role-link-btn">Access Faculty Dashboard →</a>
         </div>
 
+        <!-- Admin Card -->
+        <div class="role-card">
+          <div class="role-card-badge">
+            <span class="chip chip-muted">For Administrators</span>
+          </div>
+          <h3 class="role-card-title">Govern & Monitor</h3>
+          <p class="role-card-desc">Get high-level institutional oversight. Track registered students, faculty members, active lectures, and manage the campus user directory in real time.</p>
+          <ul class="role-features">
+            <li class="role-feature-item">Real-time campus overview metrics</li>
+            <li class="role-feature-item">Searchable student & faculty directory</li>
+            <li class="role-feature-item">Institutional access control</li>
+            <li class="role-feature-item">Course & curriculum oversight</li>
+          </ul>
+          <a href="login.html" class="role-link-btn">Access Admin Dashboard →</a>
+        </div>
+
+      </div>
     </div>
+  </section>
 
-</footer>
+  <!-- ================= MOODLE INTEGRATION BANNER ================= -->
+  <section class="moodle-section" id="moodle">
+    <div class="landing-container">
+      <div class="moodle-banner">
+        <div>
+          <span class="chip chip-moodle" style="margin-bottom:12px;">Institutional Sync</span>
+          <h3 class="moodle-banner-title">Built-in Moodle LMS Integration</h3>
+          <p class="moodle-banner-desc">
+            ADHYAY seamlessly connects with your college's Moodle server. Faculty courses, subjects, and curriculum hierarchies are automatically synchronized so students always find lectures under their registered subjects.
+          </p>
+          <a href="login.html" class="btn-outline">Explore Synced Courses →</a>
+        </div>
 
+        <div class="moodle-preview-pills">
+          <div class="moodle-preview-row">
+            <span>Data Structures</span>
+            <span class="chip chip-moodle">Moodle</span>
+          </div>
+          <div class="moodle-preview-row">
+            <span>Database Management</span>
+            <span class="chip chip-moodle">Moodle</span>
+          </div>
+          <div class="moodle-preview-row">
+            <span>Operating Systems</span>
+            <span class="chip chip-moodle">Moodle</span>
+          </div>
+          <div class="moodle-preview-row">
+            <span>Computer Networks</span>
+            <span class="chip chip-moodle">Moodle</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- ================= CALL TO ACTION ================= -->
+  <section class="cta-section">
+    <div class="landing-container">
+      <div class="cta-card">
+        <h2 class="cta-heading">Ready to upgrade your college classroom?</h2>
+        <p class="cta-sub">
+          Join students, faculty, and administrators already using ADHYAY to make learning flexible, searchable, and always accessible.
+        </p>
+        <div class="cta-buttons">
+          <a href="login.html" class="btn-cta-amber">Create your free account</a>
+          <a href="login.html" class="btn-hero-outline" style="background:transparent;color:#fff;border-color:rgba(255,255,255,0.3);">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- ================= SCRIPTS ================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-</script>
-
-<script src="script.js"></script>
+  <!-- ================= FOOTER ================= -->
+  <footer class="landing-footer">
+    <div class="landing-container">
+      <div class="footer-inner">
+        <div class="logo-wrap">
+          <div class="logo-mark">A</div>
+          <span class="logo-name">ADHYAY</span>
+        </div>
+        <p>© 2026 ADHYAY. Lecture management for colleges and universities.</p>
+        <div style="display:flex;gap:20px;">
+          <a href="login.html" style="color:var(--muted);">Sign in</a>
+          <a href="login.html" style="color:var(--muted);">Create account</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>
-```

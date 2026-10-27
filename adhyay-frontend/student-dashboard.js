@@ -8,6 +8,8 @@ const API_URL = "http://localhost:8081/api";
 const AUTH_KEY = "adhyayUser";
 const PROGRESS_KEY = "adhyayLectureProgress";
 const BOOKMARKS_KEY = "adhyayLectureBookmarks";
+const COMMENTS_KEY = "adhyayLectureComments";
+const LIKES_KEY = "adhyayLectureLikes";
 
 /* ---------- Application State ---------- */
 
@@ -91,8 +93,14 @@ function initializeUser() {
         return false;
     }
 
+    if (role === "ADMIN") {
+        window.location.href = "admin-dashboard.html";
+        return false;
+    }
+
     if (role !== "STUDENT") {
-        showMessage("Your account role could not be verified. Please log in again.", "error");
+        localStorage.removeItem(AUTH_KEY);
+        window.location.href = "login.html";
         return false;
     }
 
@@ -104,15 +112,16 @@ function initializeUser() {
         "Student";
 
     const nameElement = getElement("studentName", "userName", "welcomeName");
+    if (nameElement) nameElement.textContent = name;
 
-    if (nameElement) {
-        nameElement.textContent = name;
-    }
+    const avatarElement = getElement("sidebarAvatar", "studentAvatar", "userAvatar");
+    if (avatarElement) avatarElement.textContent = name.charAt(0).toUpperCase();
 
-    const avatarElement = getElement("studentAvatar", "userAvatar");
-
-    if (avatarElement) {
-        avatarElement.textContent = name.charAt(0).toUpperCase();
+    const welcomeTitle = document.getElementById("welcomeTitle");
+    if (welcomeTitle) {
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+        welcomeTitle.textContent = `${greeting}, ${name.split(" ")[0]}.`;
     }
 
     return true;
@@ -374,22 +383,9 @@ function renderLectureCards() {
 
     if (filteredLectures.length === 0) {
         const message = showSavedOnly
-            ? "No saved lectures found. Use the bookmark icon on a lecture to save it."
-            : "Try another search term or choose a different subject.";
-
-        grid.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📚</div>
-                <strong>No lectures found</strong>
-                <p>${escapeHTML(message)}</p>
-                ${
-                    showSavedOnly
-                        ? `<button class="btn btn-outline" id="backToAllBtn" type="button">View All Lectures</button>`
-                        : ""
-                }
-            </div>
-        `;
-
+            ? "No saved lectures. Bookmark a lecture to save it here."
+            : "No lectures match your search or filter.";
+        grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;padding:8px 0;">${escapeHTML(message)}</p>`;
         return;
     }
 
@@ -397,6 +393,8 @@ function renderLectureCards() {
         grid.appendChild(createLectureCard(lecture));
     });
 }
+
+const THUMB_COLORS = ["#2a5c4e", "#1a3d35", "#4a3220", "#3b4a30", "#1e3a5f", "#5c3a2a"];
 
 function createLectureCard(lecture) {
     const card = document.createElement("article");
@@ -409,104 +407,44 @@ function createLectureCard(lecture) {
 
     const title = lecture.title || "Untitled Lecture";
     const subject = lecture.subject || "General";
-    const unit = lecture.unit ?? "—";
-    const lectureNumber = lecture.lectureNumber ?? "—";
-    const description = lecture.description || "No description available.";
+    const unit = lecture.unit ?? "";
+    const lectureNumber = lecture.lectureNumber ?? "";
     const uploadedBy = lecture.uploadedBy || "Faculty";
 
     const percent = progress.duration > 0
-        ? Math.min(
-            100,
-            Math.round((progress.currentTime / progress.duration) * 100)
-        )
+        ? Math.min(100, Math.round((progress.currentTime / progress.duration) * 100))
         : 0;
+    const hasProgress = Number(progress.currentTime) > 0 && !progress.completed;
 
-    const hasProgress = Number(progress.currentTime) > 0 &&
-        !progress.completed;
+    // Pick deterministic thumb colour
+    const colorIndex = id.split('').reduce((s, c) => s + c.charCodeAt(0), 0) % THUMB_COLORS.length;
+    const thumbColor = THUMB_COLORS[colorIndex];
 
     card.innerHTML = `
-        <div class="lecture-cover">
-            <div class="cover-icon" aria-hidden="true">▶</div>
-
-            <span class="cover-label">
-                ${escapeHTML(subject)}
-            </span>
-
-            <button
-                class="bookmark-btn ${isSaved ? "is-saved" : ""}"
-                type="button"
-                data-action="bookmark"
-                data-id="${escapeHTML(id)}"
-                aria-label="${isSaved ? "Remove bookmark" : "Save lecture"}"
-                aria-pressed="${isSaved}"
-                title="${isSaved ? "Remove bookmark" : "Save lecture"}"
-            >${isSaved ? "★" : "☆"}</button>
+        <div class="card-thumb thumb-colors" style="--c:${thumbColor}">
+            <div class="card-thumb-play">▶</div>
         </div>
-
-        <div class="lecture-info">
-            <div class="lecture-tags">
-                <span class="lecture-tag">
-                    Unit ${escapeHTML(unit)}
-                </span>
-
-                <span class="lecture-tag neutral">
-                    Lecture ${escapeHTML(lectureNumber)}
-                </span>
+        <div class="card-body">
+            <div class="card-chip-row">
+                <span class="chip chip-green">${escapeHTML(subject)}</span>
+                ${unit ? `<span class="chip chip-muted">Unit ${escapeHTML(String(unit))}</span>` : ""}
+                ${lectureNumber ? `<span class="chip chip-muted">Lecture ${escapeHTML(String(lectureNumber))}</span>` : ""}
             </div>
-
-            <h3 class="lecture-title">
-                ${escapeHTML(title)}
-            </h3>
-
-            <p class="lecture-description">
-                ${escapeHTML(description)}
-            </p>
-
-            <div class="lecture-meta">
-                <span>👤 ${escapeHTML(uploadedBy)}</span>
-                <span>${escapeHTML(formatDate(lecture.createdAt))}</span>
-            </div>
-
+            <div class="card-title">${escapeHTML(title)}</div>
+            <div class="card-meta">${escapeHTML(uploadedBy)} · ${escapeHTML(formatDate(lecture.createdAt))}</div>
             ${
                 hasProgress
-                    ? `
-                        <div class="lecture-progress">
-                            <div class="progress-label">
-                                <span>Continue watching</span>
-                                <span>${percent}%</span>
-                            </div>
-
-                            <div class="progress-track">
-                                <div class="progress-fill" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-                    `
+                    ? `<div class="card-progress"><div class="progress-track"><div class="progress-fill" style="width:${percent}%"></div></div></div>`
                     : ""
             }
-
-            <div class="lecture-actions">
-                <button
-                    class="watch-btn"
-                    type="button"
-                    data-action="watch"
-                    data-id="${escapeHTML(id)}"
-                    ${lecture.videoUrl ? "" : "disabled"}
-                >
-                    ▶ ${hasProgress ? "Continue" : "Watch Lecture"}
-                </button>
-
-                <button
-                    class="details-btn"
-                    type="button"
-                    data-action="details"
-                    data-id="${escapeHTML(id)}"
-                >
-                    Details
-                </button>
-            </div>
         </div>
     `;
 
+    // click card to watch
+    if (lecture.videoUrl) {
+        card.style.cursor = "pointer";
+        card.addEventListener("click", () => openVideo(id));
+    }
     return card;
 }
 
@@ -590,29 +528,25 @@ function toggleBookmark(id) {
 function toggleSavedLectures() {
     showSavedOnly = !showSavedOnly;
 
-    const button = getElement("savedLecturesBtn", "showSavedBtn");
+    const subjectsSection = document.getElementById("subjectsSection");
+    const bookmarksSection = document.getElementById("bookmarksSection");
 
-    if (button) {
-        button.setAttribute("aria-pressed", String(showSavedOnly));
-        button.textContent = showSavedOnly
-            ? "Show All Lectures"
-            : "Saved Lectures";
-    }
+    if (subjectsSection) subjectsSection.hidden = showSavedOnly;
+    if (bookmarksSection) bookmarksSection.hidden = !showSavedOnly;
 
-    const savedSection = getElement("savedSection", "savedLecturesSection");
-
-    if (savedSection) {
-        savedSection.hidden = !showSavedOnly;
-    }
-
-    applyFilters();
-
-    const heading = getElement("lectureSectionTitle", "lecturesHeading");
-
-    if (heading) {
-        heading.textContent = showSavedOnly
-            ? "Saved Lectures"
-            : "Explore Lectures";
+    // When showing saved, render bookmarked cards into bookmarksGrid
+    if (showSavedOnly) {
+        const bGrid = document.getElementById("bookmarksGrid");
+        if (bGrid) {
+            bGrid.innerHTML = "";
+            const bookmarks = getBookmarks();
+            const saved = allLectures.filter(l => bookmarks.includes(getLectureId(l)));
+            if (saved.length === 0) {
+                bGrid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;">No saved lectures yet. Bookmark a lecture to see it here.</p>`;
+            } else {
+                saved.forEach(l => bGrid.appendChild(createLectureCard(l)));
+            }
+        }
     }
 }
 
@@ -639,6 +573,8 @@ function showLectureDetails(id) {
 
 /* ---------- Video Player ---------- */
 
+/* ---------- Video Player (YouTube-Style Watch Theater) ---------- */
+
 function openVideo(id) {
     const lecture = allLectures.find(
         item => getLectureId(item) === String(id)
@@ -654,32 +590,74 @@ function openVideo(id) {
         return;
     }
 
-    const modal = getElement("videoModal", "lectureModal");
-    const player = getElement("lecturePlayer", "videoPlayer");
+    const modal = document.getElementById("videoModal");
+    const player = document.getElementById("lecturePlayer");
 
     if (!modal || !player) {
-        showMessage(
-            "The video player elements are missing from student-dashboard.html.",
-            "error"
-        );
+        showMessage("The video player elements are missing.", "error");
         return;
     }
 
     currentLecture = lecture;
+    const lectureId = getLectureId(lecture);
 
-    const titleElement = getElement("modalLectureTitle", "videoTitle");
+    // Title elements
+    const titleElement = document.getElementById("playerTitle");
+    const quickTitle = document.getElementById("playerQuickTitle");
+    if (titleElement) titleElement.textContent = lecture.title || "Lecture";
+    if (quickTitle) quickTitle.textContent = lecture.title || "Lecture";
 
-    if (titleElement) {
-        titleElement.textContent = lecture.title || "Lecture";
+    // Tags & Badges
+    const subjectBadge = document.getElementById("playerSubjectBadge");
+    const subjectTag = document.getElementById("playerSubjectTag");
+    const unitTag = document.getElementById("playerUnitTag");
+    const numberTag = document.getElementById("playerNumberTag");
+
+    const subjectName = lecture.subject || "General";
+    if (subjectBadge) subjectBadge.textContent = subjectName;
+    if (subjectTag) subjectTag.textContent = subjectName;
+    if (unitTag) unitTag.textContent = lecture.unit !== undefined && lecture.unit !== null ? `Unit ${lecture.unit}` : "Unit —";
+    if (numberTag) numberTag.textContent = lecture.lectureNumber !== undefined && lecture.lectureNumber !== null ? `Lecture ${lecture.lectureNumber}` : "Lecture";
+
+    // Faculty info
+    const facultyName = document.getElementById("playerFacultyName");
+    const facultyAvatar = document.getElementById("facultyAvatar");
+    const instructor = lecture.uploadedBy || "Faculty Instructor";
+    if (facultyName) facultyName.textContent = instructor;
+    if (facultyAvatar) facultyAvatar.textContent = instructor.charAt(0).toUpperCase();
+
+    // Current user comment avatar
+    const commentUserAvatar = document.getElementById("commentUserAvatar");
+    if (commentUserAvatar) {
+        const studentInitial = (currentUser && (currentUser.name || currentUser.username) ? (currentUser.name || currentUser.username).charAt(0).toUpperCase() : "S");
+        commentUserAvatar.textContent = studentInitial;
     }
 
-    const subjectElement = getElement("modalLectureInfo", "videoSubtitle");
-
-    if (subjectElement) {
-        subjectElement.textContent =
-            `${lecture.subject || "General"} · Unit ${lecture.unit ?? "—"}`;
+    // Date & Description
+    const uploadDate = document.getElementById("watchUploadDate");
+    const description = document.getElementById("playerDescription");
+    if (uploadDate) uploadDate.textContent = `Uploaded ${formatDate(lecture.createdAt)}`;
+    if (description) {
+        description.textContent = lecture.description && lecture.description.trim()
+            ? lecture.description
+            : "No extra lecture notes provided by the instructor.";
     }
 
+    // Update buttons UI
+    updateLikeButtonUI(lectureId);
+    updateWatchBookmarkUI(lectureId);
+
+    // Render Comments & Playlist
+    renderComments(lectureId);
+    renderWatchPlaylist();
+
+    // Clear comment input
+    const commentInput = document.getElementById("commentInput");
+    const submitBtn = document.getElementById("submitCommentBtn");
+    if (commentInput) commentInput.value = "";
+    if (submitBtn) submitBtn.disabled = true;
+
+    // Load and play video
     player.pause();
     player.src = lecture.videoUrl;
     player.load();
@@ -687,8 +665,8 @@ function openVideo(id) {
     modal.hidden = false;
     document.body.style.overflow = "hidden";
 
+    // Restore saved progress
     const savedProgress = getLectureProgress(lecture);
-
     const restorePosition = () => {
         if (
             savedProgress.currentTime > 0 &&
@@ -697,23 +675,21 @@ function openVideo(id) {
         ) {
             player.currentTime = savedProgress.currentTime;
         }
-
         player.removeEventListener("loadedmetadata", restorePosition);
     };
 
     player.addEventListener("loadedmetadata", restorePosition);
     player.play().catch(error => {
-        console.warn("Playback did not start automatically:", error);
+        console.warn("Autoplay was prevented by browser:", error);
     });
 }
 
 function closeVideo() {
-    const modal = getElement("videoModal", "lectureModal");
-    const player = getElement("lecturePlayer", "videoPlayer");
+    const modal = document.getElementById("videoModal");
+    const player = document.getElementById("lecturePlayer");
 
     if (player) {
         savePlaybackProgress();
-
         player.pause();
         player.removeAttribute("src");
         player.load();
@@ -732,16 +708,13 @@ function closeVideo() {
 }
 
 function savePlaybackProgress() {
-    const player = getElement("lecturePlayer", "videoPlayer");
-
+    const player = document.getElementById("lecturePlayer");
     if (!currentLecture || !player) return;
 
     const id = getLectureId(currentLecture);
-
     if (!id || !Number.isFinite(player.currentTime)) return;
 
     const progress = getProgress();
-
     const completed = player.duration > 0 &&
         player.currentTime >= player.duration - 3;
 
@@ -752,6 +725,276 @@ function savePlaybackProgress() {
     };
 
     writeJSON(PROGRESS_KEY, progress);
+}
+
+/* ---------- Theater Mode & Fullscreen ---------- */
+
+function toggleTheaterMode() {
+    const modal = document.getElementById("videoModal");
+    const btnText = document.getElementById("theaterBtnText");
+    if (!modal) return;
+
+    modal.classList.toggle("theater-expanded");
+    const isExpanded = modal.classList.contains("theater-expanded");
+    if (btnText) {
+        btnText.textContent = isExpanded ? "Default View" : "Theater Mode";
+    }
+}
+
+function toggleFullScreen() {
+    const player = document.getElementById("lecturePlayer");
+    if (!player) return;
+
+    if (!document.fullscreenElement) {
+        if (player.requestFullscreen) {
+            player.requestFullscreen();
+        } else if (player.webkitRequestFullscreen) {
+            player.webkitRequestFullscreen();
+        } else if (player.msRequestFullscreen) {
+            player.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+/* ---------- Watch View Likes & Bookmarks ---------- */
+
+function getLectureLikes() {
+    return readJSON(LIKES_KEY, {});
+}
+
+function toggleLectureLike(id) {
+    const likes = getLectureLikes();
+    const isLiked = !likes[id];
+    likes[id] = isLiked;
+    writeJSON(LIKES_KEY, likes);
+    updateLikeButtonUI(id);
+}
+
+function updateLikeButtonUI(id) {
+    const btn = document.getElementById("likeLectureBtn");
+    const countSpan = document.getElementById("likeLectureCount");
+    const textSpan = document.getElementById("likeLectureText");
+    const likes = getLectureLikes();
+    const isLiked = Boolean(likes[id]);
+
+    if (btn) btn.classList.toggle("active", isLiked);
+    if (textSpan) textSpan.textContent = isLiked ? "Helpful" : "Helpful";
+    if (countSpan) {
+        const base = 12;
+        countSpan.textContent = isLiked ? (base + 1) : base;
+    }
+}
+
+function updateWatchBookmarkUI(id) {
+    const bookmarks = getBookmarks();
+    const isSaved = bookmarks.includes(id);
+    const icon = document.getElementById("bookmarkIcon");
+    const text = document.getElementById("bookmarkBtnText");
+    const btn = document.getElementById("bookmarkCurrentBtn");
+
+    if (btn) btn.classList.toggle("active", isSaved);
+    if (icon) icon.textContent = isSaved ? "♥" : "♡";
+    if (text) text.textContent = isSaved ? "Saved" : "Save";
+}
+
+/* ---------- Comment System (Discussions & Doubts) ---------- */
+
+function getLectureComments(lectureId) {
+    const store = readJSON(COMMENTS_KEY, {});
+    if (!store[lectureId]) {
+        store[lectureId] = [];
+    }
+    return store[lectureId];
+}
+
+function timeAgo(dateOrTimestamp) {
+    const timestamp = typeof dateOrTimestamp === "number" ? dateOrTimestamp : new Date(dateOrTimestamp).getTime();
+    if (isNaN(timestamp)) return "recently";
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    return new Date(timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+}
+
+function renderComments(lectureId) {
+    const list = document.getElementById("commentsList");
+    const countBadge = document.getElementById("commentsCountBadge");
+    if (!list) return;
+
+    const comments = getLectureComments(lectureId);
+    if (countBadge) countBadge.textContent = comments.length;
+
+    if (comments.length === 0) {
+        list.innerHTML = `
+            <div class="comments-empty-state">
+                <span>💬</span>
+                <strong>No comments or doubts yet</strong>
+                <p>Be the first to ask a question or leave feedback on this lecture!</p>
+            </div>
+        `;
+        return;
+    }
+
+    const currentUserName = (currentUser && (currentUser.name || currentUser.username)) || "Student";
+
+    list.innerHTML = comments
+        .slice()
+        .reverse()
+        .map(comment => {
+            const authorInitial = (comment.author || "S").charAt(0).toUpperCase();
+            const isOwn = comment.author === currentUserName;
+            const isFaculty = comment.role === "FACULTY" || comment.role === "Faculty";
+            return `
+                <div class="comment-item" data-comment-id="${escapeHTML(comment.id)}">
+                    <div class="comment-item-avatar">${escapeHTML(authorInitial)}</div>
+                    <div class="comment-item-content">
+                        <div class="comment-meta-bar">
+                            <span class="comment-author-name">${escapeHTML(comment.author || "Student")}</span>
+                            <span class="comment-role-chip ${isFaculty ? 'faculty' : ''}">
+                                ${escapeHTML(comment.role || "Student")}
+                            </span>
+                            <span class="comment-time-ago">${escapeHTML(timeAgo(comment.timestamp))}</span>
+                        </div>
+                        <p class="comment-text-body">${escapeHTML(comment.text)}</p>
+                        <div class="comment-actions-bar">
+                            <button
+                                class="comment-action-btn ${comment.liked ? 'liked' : ''}"
+                                type="button"
+                                data-comment-action="like"
+                                data-comment-id="${escapeHTML(comment.id)}"
+                            >
+                                <span>👍</span>
+                                <span>${comment.likes || 0}</span>
+                            </button>
+                            ${
+                                isOwn
+                                    ? `
+                                    <button
+                                        class="comment-action-btn delete"
+                                        type="button"
+                                        data-comment-action="delete"
+                                        data-comment-id="${escapeHTML(comment.id)}"
+                                    >
+                                        <span>🗑 Delete</span>
+                                    </button>
+                                `
+                                    : ""
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        })
+        .join("");
+}
+
+function addComment(lectureId, text) {
+    if (!text || !text.trim()) return;
+    const store = readJSON(COMMENTS_KEY, {});
+    if (!store[lectureId]) store[lectureId] = [];
+
+    const currentUserName = (currentUser && (currentUser.name || currentUser.username)) || "Student";
+    const currentUserRole = (currentUser && currentUser.role) || "Student";
+
+    const newComment = {
+        id: "c_" + Date.now(),
+        author: currentUserName,
+        role: currentUserRole,
+        text: text.trim(),
+        timestamp: Date.now(),
+        likes: 0,
+        liked: false
+    };
+
+    store[lectureId].push(newComment);
+    writeJSON(COMMENTS_KEY, store);
+    renderComments(lectureId);
+}
+
+function toggleCommentLike(lectureId, commentId) {
+    const store = readJSON(COMMENTS_KEY, {});
+    const list = store[lectureId];
+    if (!list) return;
+
+    const comment = list.find(c => c.id === commentId);
+    if (!comment) return;
+
+    comment.liked = !comment.liked;
+    comment.likes = (comment.likes || 0) + (comment.liked ? 1 : -1);
+    if (comment.likes < 0) comment.likes = 0;
+
+    writeJSON(COMMENTS_KEY, store);
+    renderComments(lectureId);
+}
+
+function deleteComment(lectureId, commentId) {
+    const store = readJSON(COMMENTS_KEY, {});
+    const list = store[lectureId];
+    if (!list) return;
+
+    store[lectureId] = list.filter(c => c.id !== commentId);
+    writeJSON(COMMENTS_KEY, store);
+    renderComments(lectureId);
+}
+
+/* ---------- Course Playlist (YouTube-Style Sidebar) ---------- */
+
+function renderWatchPlaylist() {
+    const playlistContainer = document.getElementById("watchPlaylist");
+    const subjectTitle = document.getElementById("playlistSubjectTitle");
+    const countSpan = document.getElementById("playlistCount");
+    if (!playlistContainer || !currentLecture) return;
+
+    const currentId = getLectureId(currentLecture);
+
+    // Filter playlist by subject if possible, or all
+    let playlist = allLectures.filter(lec => (lec.subject || "") === (currentLecture.subject || ""));
+    if (playlist.length <= 1) {
+        playlist = allLectures;
+    }
+
+    if (subjectTitle) {
+        subjectTitle.textContent = currentLecture.subject ? `${currentLecture.subject}` : "All Lectures";
+    }
+    if (countSpan) {
+        countSpan.textContent = `${playlist.length} lectures`;
+    }
+
+    playlistContainer.innerHTML = playlist.map((lecture, index) => {
+        const id = getLectureId(lecture);
+        const isActive = id === currentId;
+        const lecNum = lecture.lectureNumber ?? (index + 1);
+        const faculty = lecture.uploadedBy || "Faculty";
+        return `
+            <div
+                class="playlist-card ${isActive ? 'active' : ''}"
+                data-playlist-id="${escapeHTML(id)}"
+            >
+                <div class="playlist-thumbnail">
+                    <span class="playlist-thumb-icon">▶</span>
+                    <span class="playlist-lec-badge">L${escapeHTML(lecNum)}</span>
+                </div>
+                <div class="playlist-card-content">
+                    <p class="playlist-card-title">${escapeHTML(lecture.title || "Untitled Lecture")}</p>
+                    <span class="playlist-card-faculty">👨‍🏫 ${escapeHTML(faculty)}</span>
+                    ${isActive ? `
+                        <span class="playlist-card-status">
+                            <span class="now-playing-pulse"></span> Now Playing
+                        </span>
+                    ` : ""}
+                </div>
+            </div>
+        `;
+    }).join("");
 }
 
 /* ---------- Event Listeners ---------- */
@@ -775,7 +1018,7 @@ function setupEventListeners() {
         });
     }
 
-    const savedButton = getElement("savedLecturesBtn", "showSavedBtn");
+    const savedButton = getElement("savedLecturesBtn", "showSavedBtn", "showBookmarksBtn");
 
     if (savedButton) {
         savedButton.addEventListener("click", toggleSavedLectures);
@@ -787,9 +1030,10 @@ function setupEventListeners() {
         logoutButton.addEventListener("click", logout);
     }
 
+    // Main document click delegation
     document.addEventListener("click", event => {
+        // Lecture card action buttons
         const actionButton = event.target.closest("[data-action]");
-
         if (actionButton) {
             const action = actionButton.dataset.action;
             const id = actionButton.dataset.id;
@@ -801,75 +1045,163 @@ function setupEventListeners() {
             } else if (action === "details") {
                 showLectureDetails(id);
             }
-
             return;
         }
 
+        // Playlist card click in watch view
+        const playlistCard = event.target.closest("[data-playlist-id]");
+        if (playlistCard) {
+            const id = playlistCard.dataset.playlistId;
+            if (id && (!currentLecture || getLectureId(currentLecture) !== id)) {
+                openVideo(id);
+            }
+            return;
+        }
+
+        // Comment like/delete buttons
+        const commentBtn = event.target.closest("[data-comment-action]");
+        if (commentBtn && currentLecture) {
+            const lectureId = getLectureId(currentLecture);
+            const commentAction = commentBtn.dataset.commentAction;
+            const commentId = commentBtn.dataset.commentId;
+
+            if (commentAction === "like") {
+                toggleCommentLike(lectureId, commentId);
+            } else if (commentAction === "delete") {
+                if (confirm("Are you sure you want to delete this comment?")) {
+                    deleteComment(lectureId, commentId);
+                }
+            }
+            return;
+        }
+
+        // Back to all lectures button
         if (event.target.closest("#backToAllBtn")) {
             showSavedOnly = false;
-
-            const savedButton = getElement("savedLecturesBtn", "showSavedBtn");
-
+            const savedButton = getElement("savedLecturesBtn", "showSavedBtn", "showBookmarksBtn");
             if (savedButton) {
                 savedButton.setAttribute("aria-pressed", "false");
                 savedButton.textContent = "Saved Lectures";
             }
-
-            const savedSection = getElement("savedSection", "savedLecturesSection");
-
-            if (savedSection) {
-                savedSection.hidden = true;
-            }
-
+            const savedSection = getElement("savedSection", "savedLecturesSection", "bookmarksSection");
+            if (savedSection) savedSection.hidden = true;
             applyFilters();
         }
     });
 
-    const modal = getElement("videoModal", "lectureModal");
-    const closeButton = getElement("closeVideoBtn", "closeModalBtn");
-    const player = getElement("lecturePlayer", "videoPlayer");
+    // Watch view specific buttons
+    const closeBackBtn = document.getElementById("closePlayerBtn");
+    const closeIconBtn = document.getElementById("closePlayerIconBtn");
+    if (closeBackBtn) closeBackBtn.addEventListener("click", closeVideo);
+    if (closeIconBtn) closeIconBtn.addEventListener("click", closeVideo);
 
-    if (closeButton) {
-        closeButton.addEventListener("click", closeVideo);
+    const theaterBtn = document.getElementById("theaterToggleBtn");
+    if (theaterBtn) theaterBtn.addEventListener("click", toggleTheaterMode);
+
+    const fullscreenBtn = document.getElementById("playerFullscreenBtn");
+    if (fullscreenBtn) fullscreenBtn.addEventListener("click", toggleFullScreen);
+
+    const likeLectureBtn = document.getElementById("likeLectureBtn");
+    if (likeLectureBtn) {
+        likeLectureBtn.addEventListener("click", () => {
+            if (currentLecture) toggleLectureLike(getLectureId(currentLecture));
+        });
     }
 
-    if (modal) {
-        modal.addEventListener("click", event => {
-            if (
-                event.target.classList.contains("modal-backdrop") ||
-                event.target === modal
-            ) {
-                closeVideo();
+    const bookmarkCurrentBtn = document.getElementById("bookmarkCurrentBtn");
+    if (bookmarkCurrentBtn) {
+        bookmarkCurrentBtn.addEventListener("click", () => {
+            if (currentLecture) {
+                const id = getLectureId(currentLecture);
+                toggleBookmark(id);
+                updateWatchBookmarkUI(id);
             }
         });
     }
 
+    const shareBtn = document.getElementById("shareLectureBtn");
+    if (shareBtn) {
+        shareBtn.addEventListener("click", () => {
+            if (navigator.clipboard && window.location.href) {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Lecture link copied to clipboard!");
+            } else {
+                alert("Share link: " + window.location.href);
+            }
+        });
+    }
+
+    // Comment form inputs
+    const commentInput = document.getElementById("commentInput");
+    const submitCommentBtn = document.getElementById("submitCommentBtn");
+    const cancelCommentBtn = document.getElementById("cancelCommentBtn");
+
+    if (commentInput && submitCommentBtn) {
+        commentInput.addEventListener("input", () => {
+            submitCommentBtn.disabled = !commentInput.value.trim();
+        });
+
+        submitCommentBtn.addEventListener("click", () => {
+            if (!currentLecture || !commentInput.value.trim()) return;
+            addComment(getLectureId(currentLecture), commentInput.value);
+            commentInput.value = "";
+            submitCommentBtn.disabled = true;
+        });
+    }
+
+    if (cancelCommentBtn && commentInput) {
+        cancelCommentBtn.addEventListener("click", () => {
+            commentInput.value = "";
+            if (submitCommentBtn) submitCommentBtn.disabled = true;
+        });
+    }
+
+    // Video Player events
+    const player = document.getElementById("lecturePlayer");
     if (player) {
         player.addEventListener("timeupdate", savePlaybackProgress);
         player.addEventListener("pause", savePlaybackProgress);
 
         player.addEventListener("ended", () => {
             if (!currentLecture) return;
-
             const progress = getProgress();
             const id = getLectureId(currentLecture);
-
             progress[id] = {
                 currentTime: 0,
-                duration: Number.isFinite(player.duration)
-                    ? player.duration
-                    : 0,
+                duration: Number.isFinite(player.duration) ? player.duration : 0,
                 completed: true
             };
-
             writeJSON(PROGRESS_KEY, progress);
             updateStatistics();
+            renderContinueWatching();
+            renderWatchPlaylist();
         });
     }
 
+    // Keyboard shortcuts: F (fullscreen), T (theater), Space (play/pause), Esc (close)
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && currentLecture) {
-            closeVideo();
+        if (!currentLecture) return;
+
+        const isInput = ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName);
+
+        if (event.key === "Escape") {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                closeVideo();
+            }
+        } else if (!isInput) {
+            if (event.key.toLowerCase() === "f") {
+                event.preventDefault();
+                toggleFullScreen();
+            } else if (event.key.toLowerCase() === "t") {
+                event.preventDefault();
+                toggleTheaterMode();
+            } else if (event.key === " " && player) {
+                event.preventDefault();
+                if (player.paused) player.play();
+                else player.pause();
+            }
         }
     });
 
@@ -884,3 +1216,4 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEventListeners();
     fetchLectures();
 });
+

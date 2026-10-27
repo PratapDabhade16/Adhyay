@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    { "src": "^/$", "dest": "/index.html" },
+    { "src": "^/login$", "dest": "/login.html" },
+    { "src": "^/student$", "dest": "/student-dashboard.html" },
+    { "src": "^/faculty$", "dest": "/faculty-dashboard.html" },
+    { "src": "^/admin$", "dest": "/admin-dashboard.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}

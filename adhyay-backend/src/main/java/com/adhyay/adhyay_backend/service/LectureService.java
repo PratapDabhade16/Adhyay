@@ -53,7 +53,9 @@ public class LectureService {
         Map<?, ?> uploadResult;
 
         try {
-            video.transferTo(temporaryVideo);
+            try (java.io.InputStream in = video.getInputStream()) {
+                java.nio.file.Files.copy(in, temporaryVideo.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
 
             uploadResult = cloudinary.uploader().uploadLarge(
                     temporaryVideo,

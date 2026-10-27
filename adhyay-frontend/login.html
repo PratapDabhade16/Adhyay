@@ -1,407 +1,974 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADHYAY — Sign in & Register (Walchand College of Engineering)</title>
+  <link rel="stylesheet" href="adhyay.css">
+  <style>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .auth-page {
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      min-height: 100vh;
+    }
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    /* ── LEFT PANEL (Dark Forest Green) ── */
+    .auth-left {
+      background: var(--green-dark);
+      color: #fff;
+      padding: 48px 56px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .auth-left .logo-mark {
+      background: var(--amber);
+      color: var(--green-dark);
+    }
+    .auth-left .logo-name {
+      color: #fff;
+    }
 
-    <title>ADHYAY - Login</title>
+    .auth-hero {
+      margin-top: 36px;
+      margin-bottom: 24px;
+    }
+    .auth-badge-wce {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(244, 165, 38, 0.2);
+      border: 1px solid rgba(244, 165, 38, 0.4);
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .auth-hero-title {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.8px;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .auth-hero-sub {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.55;
+      max-width: 440px;
+      margin-bottom: 32px;
+    }
 
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    /* 3 Feature Bullets with Yellow Numbers */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      margin-bottom: 28px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .feature-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: var(--green-dark);
+      font-weight: 700;
+      font-size: 14px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .feature-content strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .feature-content span {
+      display: block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.45;
+    }
 
-    <!-- Bootstrap Icons -->
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    >
+    /* Left Bottom Player Preview Box */
+    .mini-player-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      max-width: 400px;
+      margin-bottom: 24px;
+    }
+    .mini-player-thumb {
+      width: 96px;
+      height: 56px;
+      border-radius: var(--radius-sm);
+      background: #2E3D52;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .mini-player-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .mini-player-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 2px;
+    }
+    .mini-player-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-player-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .mini-player-fill {
+      width: 65%;
+      height: 100%;
+      background: var(--amber);
+      border-radius: 99px;
+    }
 
-    <!-- ADHYAY Login CSS -->
-    <link rel="stylesheet" href="login.css">
+    .auth-left-footer {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── RIGHT PANEL (Warm Canvas) ── */
+    .auth-right {
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 60px;
+      position: relative;
+    }
+    .auth-form-container {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .form-header {
+      margin-bottom: 18px;
+    }
+    .form-heading {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .form-subheading {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* College Domain Restriction Banner */
+    .domain-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #92400E;
+      margin-bottom: 16px;
+    }
+
+    /* Google Sign-in Button */
+    .btn-google {
+      width: 100%;
+      padding: 11px 16px;
+      background: #FFFFFF;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.15s ease;
+      margin-bottom: 18px;
+    }
+    .btn-google:hover {
+      background: #F9FAFB;
+      border-color: #9CA3AF;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+    .google-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 16px 0 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .auth-divider span {
+      padding: 0 12px;
+      font-weight: 500;
+    }
+
+    /* Segmented Tab Bar */
+    .auth-tabs {
+      display: flex;
+      background: #EAE5DC;
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 500;
+      background: transparent;
+      color: var(--text-2);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .auth-tab.active {
+      background: var(--green-dark);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Role Picker */
+    .role-label {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .role-btns {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .role-btn {
+      flex: 1;
+      padding: 9px 8px;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .role-btn.active {
+      background: var(--green-dark);
+      border-color: var(--green-dark);
+      color: #fff;
+      font-weight: 600;
+    }
+    .role-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .form-label-badge {
+      font-size: 11px;
+      color: #059669;
+      font-weight: 600;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-input:focus {
+      border-color: var(--green-dark);
+      box-shadow: 0 0 0 3px rgba(13, 62, 54, 0.1);
+    }
+    .form-input::placeholder {
+      color: #9CA3AF;
+    }
+
+    /* Checkbox & Options */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-2);
+      margin: 14px 0 18px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .checkbox-label input {
+      accent-color: var(--green-dark);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+    .link-subtle {
+      color: var(--green-dark);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .link-subtle:hover {
+      text-decoration: underline;
+    }
+
+    /* Submit Button */
+    .btn-auth-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--green-dark);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .btn-auth-submit:hover {
+      background: var(--green-mid);
+    }
+    .btn-auth-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Messages */
+    .login-message {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      display: none;
+    }
+    .login-message.error {
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+      display: block;
+    }
+    .login-message.success {
+      background: #E1EFEA;
+      color: var(--green-chip-txt);
+      border: 1px solid #C4DDD7;
+      display: block;
+    }
+
+    .form-footer-switch {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 18px;
+    }
+    .form-footer-switch a, .form-footer-switch button {
+      color: var(--green-dark);
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .form-footer-switch a:hover, .form-footer-switch button:hover {
+      text-decoration: underline;
+    }
+
+    .form-bottom-note {
+      text-align: center;
+      font-size: 12px;
+      color: #9CA3AF;
+      margin-top: 24px;
+    }
+
+    /* =====================================================
+       2-STEP VERIFICATION (OTP) VIEW
+       ===================================================== */
+    .otp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      margin-top: 6px;
+    }
+    .otp-header-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #E1EFEA;
+      color: var(--green-dark);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .otp-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .otp-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .otp-email-target {
+      font-weight: 700;
+      color: var(--green-dark);
+      word-break: break-all;
+    }
+
+    /* Live College Inbox Notification Banner */
+    .college-inbox-banner {
+      background: #FEF3C7;
+      border: 1px solid #F59E0B;
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .college-inbox-text {
+      font-size: 12px;
+      color: #92400E;
+      line-height: 1.4;
+    }
+    .college-inbox-code {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #78350F;
+      font-family: monospace;
+      background: #FDE68A;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .btn-fill-otp {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #78350F;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-fill-otp:hover {
+      background: #5B210F;
+    }
+
+    /* 6 digit OTP boxes */
+    .otp-boxes {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .otp-input-digit {
+      width: 48px;
+      height: 54px;
+      border: 2px solid #D1D5DB;
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .otp-input-digit:focus {
+      border-color: var(--green-dark);
+      box-shadow: 0 0 0 3px rgba(13, 62, 54, 0.15);
+    }
+
+    .otp-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .otp-timer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .btn-resend-otp {
+      background: none;
+      border: none;
+      color: var(--green-dark);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+    }
+    .btn-resend-otp:disabled {
+      color: #9CA3AF;
+      cursor: not-allowed;
+    }
+    .btn-back-auth {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .btn-back-auth:hover {
+      color: var(--text);
+      text-decoration: underline;
+    }
+
+    /* Google Simulated Account Chooser Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .google-modal {
+      background: #fff;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      padding: 28px 24px;
+    }
+    .google-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .google-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1F2937;
+    }
+    .google-modal-sub {
+      font-size: 13px;
+      color: #6B7280;
+      margin-bottom: 20px;
+    }
+    .google-quick-acc {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .google-quick-acc:hover {
+      background: #F9FAFB;
+      border-color: #D1D5DB;
+    }
+    .google-acc-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #0D3E36;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .google-acc-info strong {
+      display: block;
+      font-size: 13px;
+      color: #111827;
+    }
+    .google-acc-info span {
+      display: block;
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 960px) {
+      .auth-page {
+        grid-template-columns: 1fr;
+      }
+      .auth-left {
+        display: none;
+      }
+      .auth-right {
+        padding: 36px 20px;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="login-page">
+<div class="auth-page">
 
-    <!-- LEFT SIDE -->
-    <div class="login-left">
+  <!-- ================= LEFT PANEL ================= -->
+  <aside class="auth-left">
+    <div>
+      <div class="logo-wrap">
+        <div class="logo-mark">A</div>
+        <span class="logo-name">ADHYAY</span>
+      </div>
 
-        <div class="brand">
-            <div class="brand-icon">
-                <i class="bi bi-book-half"></i>
-            </div>
+      <div class="auth-hero">
+        <div class="auth-badge-wce">🏛️ Walchand College of Engineering</div>
+        <h1 class="auth-hero-title">Welcome back to class.</h1>
+        <p class="auth-hero-sub">One place for recorded lectures, doubts and your official WCE courses.</p>
+      </div>
 
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-num">1</div>
+          <div class="feature-content">
+            <strong>Instant Verified Access</strong>
+            <span>Direct signup and login for all @walchandsangli.ac.in college accounts.</span>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-num">2</div>
+          <div class="feature-content">
+            <strong>Ask doubts under the video</strong>
+            <span>Questions and answers stay next to the lesson they belong to.</span>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-num">3</div>
+          <div class="feature-content">
+            <strong>Courses straight from Moodle</strong>
+            <span>Your official subjects and units are already organised.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini Player Card -->
+      <div class="mini-player-card">
+        <div class="mini-player-thumb">▶</div>
+        <div class="mini-player-info">
+          <div class="mini-player-label">Continue watching</div>
+          <div class="mini-player-title">Trees and Traversals</div>
+          <div class="mini-player-track">
+            <div class="mini-player-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-left-footer">
+      <span>🛡️ Protected by WCE Campus Security</span> • <span>@walchandsangli.ac.in domain restricted</span>
+    </div>
+  </aside>
+
+  <!-- ================= RIGHT PANEL ================= -->
+  <main class="auth-right">
+    <div class="auth-form-container">
+
+      <!-- Domain restriction notice -->
+      <div class="domain-badge">
+        <span>🔒</span>
+        <span>Institutional Access: Only <strong>@walchandsangli.ac.in</strong> emails are allowed.</span>
+      </div>
+
+      <!-- VIEW 1: MAIN AUTH (Sign in / Register) -->
+      <div id="authMainSection">
+
+        <!-- Dynamic Header -->
+        <div class="form-header">
+          <h2 class="form-heading" id="pageHeading">Sign in</h2>
+          <p class="form-subheading" id="pageSubheading">Use your Walchand College email to continue.</p>
+        </div>
+
+        <!-- Google Sign-in with WCE Restriction -->
+        <button class="btn-google" type="button" id="googleSignInBtn">
+          <svg class="google-icon" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Continue with Google (@walchandsangli.ac.in)</span>
+        </button>
+
+        <div class="auth-divider">
+          <span>or sign in with college email</span>
+        </div>
+
+        <!-- Segmented Tab Bar -->
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" id="tabSignIn" type="button">Sign in</button>
+          <button class="auth-tab" id="tabCreate" type="button">Create account</button>
+        </div>
+
+        <!-- Role Selector -->
+        <div class="role-picker-wrap">
+          <p class="role-label">I am a</p>
+          <div class="role-btns">
+            <button class="role-btn active" type="button" data-role="STUDENT">Student</button>
+            <button class="role-btn" type="button" data-role="FACULTY">Faculty</button>
+            <button class="role-btn" type="button" data-role="ADMIN">Admin</button>
+          </div>
+          <p class="role-hint" id="roleHintText">Students watch, bookmark and ask doubts in lectures.</p>
+        </div>
+
+        <!-- SIGN IN FORM -->
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">
+              <span>College email</span>
+              <span class="form-label-badge">@walchandsangli.ac.in</span>
+            </label>
+            <input class="form-input" type="email" id="loginEmail" placeholder="pratap.dabhade@walchandsangli.ac.in" autocomplete="email" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">
+              <span>Password</span>
+            </label>
+            <input class="form-input" type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" required>
+          </div>
+
+          <div class="checkbox-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="rememberMe">
+              <span>Keep me signed in</span>
+            </label>
+            <a href="#" class="link-subtle" id="forgotPasswordBtn">Forgot password?</a>
+          </div>
+
+          <button class="btn-auth-submit" type="submit" id="loginButton">
+            <span id="loginButtonText">Sign in</span>
+          </button>
+
+          <div class="login-message" id="loginMessage"></div>
+
+          <div class="form-footer-switch">
+            New to ADHYAY? <button type="button" id="switchToRegister">Create an account</button>
+          </div>
+
+          <div class="form-bottom-note">
+            Need help? Contact Walchand College IT Cell.
+          </div>
+        </form>
+
+        <!-- CREATE ACCOUNT FORM -->
+        <form id="registerForm" class="hidden" novalidate>
+          <!-- Full name & Department row -->
+          <div class="form-row">
             <div>
-                <h1>ADHYAY</h1>
-                <p>Your Learning. Your Chapters.</p>
+              <label class="form-label" for="registerName">Full name</label>
+              <input class="form-input" type="text" id="registerName" placeholder="Pratap Dabhade" required>
             </div>
-        </div>
-
-        <div class="welcome-content">
-
-            <span class="small-title">
-                WELCOME TO ADHYAY
-            </span>
-
-            <h2>
-                Learn smarter.<br>
-                <span>Grow faster.</span>
-            </h2>
-
-            <p>
-                Access recorded lectures, track your learning progress,
-                interact with faculty and continue your learning journey
-                anytime, anywhere.
-            </p>
-
-            <div class="features">
-
-                <div class="feature">
-                    <i class="bi bi-play-circle"></i>
-                    <div>
-                        <strong>Recorded Lectures</strong>
-                        <small>Learn at your own pace</small>
-                    </div>
-                </div>
-
-                <div class="feature">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <div>
-                        <strong>Track Progress</strong>
-                        <small>Keep track of your learning</small>
-                    </div>
-                </div>
-
-                <div class="feature">
-                    <i class="bi bi-chat-dots"></i>
-                    <div>
-                        <strong>Connect with Faculty</strong>
-                        <small>Ask questions and get answers</small>
-                    </div>
-                </div>
-
+            <div>
+              <label class="form-label" for="registerDept">Department</label>
+              <input class="form-input" type="text" id="registerDept" placeholder="Information Technology">
             </div>
+          </div>
 
-        </div>
+          <!-- College email -->
+          <div class="form-group">
+            <label class="form-label" for="registerEmail">
+              <span>College email</span>
+              <span class="form-label-badge">@walchandsangli.ac.in</span>
+            </label>
+            <input class="form-input" type="email" id="registerEmail" placeholder="pratap.dabhade@walchandsangli.ac.in" required>
+          </div>
+
+
+          <!-- Password & Confirm password row -->
+          <div class="form-row">
+            <div>
+              <label class="form-label" for="registerPassword">Password</label>
+              <input class="form-input" type="password" id="registerPassword" placeholder="Min 6 characters" required>
+            </div>
+            <div>
+              <label class="form-label" for="confirmPassword">Confirm password</label>
+              <input class="form-input" type="password" id="confirmPassword" placeholder="Repeat password" required>
+            </div>
+          </div>
+
+          <!-- Terms checkbox -->
+          <div class="checkbox-row" style="margin: 12px 0 18px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="termsAgree" required>
+              <span>I agree to Walchand College of Engineering policies</span>
+            </label>
+          </div>
+
+          <button class="btn-auth-submit" type="submit" id="registerButton">
+            <span>Create account</span>
+          </button>
+
+          <div class="login-message" id="registerMessage"></div>
+
+          <div class="form-footer-switch">
+            Already registered? <button type="button" id="switchToLogin">Sign in</button>
+          </div>
+        </form>
+
+      </div>
 
     </div>
-
-
-    <!-- RIGHT SIDE -->
-    <div class="login-right">
-
-        <div class="login-card">
-
-            <!-- LOGO FOR MOBILE -->
-            <div class="mobile-logo">
-                <div class="brand-icon">
-                    <i class="bi bi-book-half"></i>
-                </div>
-
-                <h2>ADHYAY</h2>
-            </div>
-
-
-            <!-- ROLE SELECTOR -->
-            <div class="role-section">
-
-                <h3>Login to your account</h3>
-
-                <p class="subtitle">
-                    Select your role to continue
-                </p>
-
-                <div class="role-buttons">
-
-                    <button
-                        type="button"
-                        class="role-btn active"
-                        data-role="STUDENT"
-                    >
-                        <i class="bi bi-person"></i>
-                        <span>Student</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        class="role-btn"
-                        data-role="FACULTY"
-                    >
-                        <i class="bi bi-person-workspace"></i>
-                        <span>Faculty</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        class="role-btn"
-                        data-role="ADMIN"
-                    >
-                        <i class="bi bi-shield-lock"></i>
-                        <span>Admin</span>
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- LOGIN FORM -->
-            <form id="loginForm" novalidate>
-
-                <div class="form-group">
-
-                    <label for="loginEmail">
-                        Email Address
-                    </label>
-
-                    <div class="input-box">
-
-                        <i class="bi bi-envelope"></i>
-
-                        <input
-                            type="email"
-                            id="loginEmail"
-                            placeholder="Enter your email"
-                            autocomplete="email"
-                            required
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="loginPassword">
-                        Password
-                    </label>
-
-                    <div class="input-box">
-
-                        <i class="bi bi-lock"></i>
-
-                        <input
-                            type="password"
-                            id="loginPassword"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            class="password-toggle"
-                            id="toggleLoginPassword"
-                            aria-label="Show password"
-                        >
-                            <i class="bi bi-eye"></i>
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="login-options">
-
-                    <label class="remember">
-
-                        <input
-                            type="checkbox"
-                            id="rememberMe"
-                        >
-
-                        <span>Remember me</span>
-
-                    </label>
-
-                    <a href="#" id="forgotPassword">
-                        Forgot password?
-                    </a>
-
-                </div>
-
-
-                <button
-                    type="submit"
-                    class="login-btn"
-                    id="loginButton"
-                >
-                    <span id="loginButtonText">
-                        Login
-                    </span>
-
-                    <span
-                        id="loginSpinner"
-                        class="spinner-border spinner-border-sm d-none"
-                        role="status"
-                    ></span>
-                </button>
-
-
-                <div
-                    id="loginMessage"
-                    class="message"
-                ></div>
-
-            </form>
-
-
-            <!-- REGISTER -->
-            <div class="register-area">
-
-                <span>Don't have an account?</span>
-
-                <button
-                    type="button"
-                    id="showRegister"
-                >
-                    Create Account
-                </button>
-
-            </div>
-
-
-            <!-- REGISTER FORM -->
-            <form
-                id="registerForm"
-                class="d-none"
-                novalidate
-            >
-
-                <div class="register-heading">
-
-                    <h3>Create your account</h3>
-
-                    <p>
-                        Register as a
-                        <strong id="registerRoleText">
-                            Student
-                        </strong>
-                    </p>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="registerName">
-                        Full Name
-                    </label>
-
-                    <div class="input-box">
-
-                        <i class="bi bi-person"></i>
-
-                        <input
-                            type="text"
-                            id="registerName"
-                            placeholder="Enter your full name"
-                            required
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="registerEmail">
-                        Email Address
-                    </label>
-
-                    <div class="input-box">
-
-                        <i class="bi bi-envelope"></i>
-
-                        <input
-                            type="email"
-                            id="registerEmail"
-                            placeholder="Enter your email"
-                            required
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="registerPassword">
-                        Password
-                    </label>
-
-                    <div class="input-box">
-
-                        <i class="bi bi-lock"></i>
-
-                        <input
-                            type="password"
-                            id="registerPassword"
-                            placeholder="Create a password"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            class="password-toggle"
-                            id="toggleRegisterPassword"
-                        >
-                            <i class="bi bi-eye"></i>
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <button
-                    type="submit"
-                    class="login-btn"
-                    id="registerButton"
-                >
-                    Create Account
-                </button>
-
-
-                <div
-                    id="registerMessage"
-                    class="message"
-                ></div>
-
-
-                <div class="register-area">
-
-                    <span>Already have an account?</span>
-
-                    <button
-                        type="button"
-                        id="showLogin"
-                    >
-                        Back to Login
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
+  </main>
 
 </div>
 
+<!-- Google Account Chooser Modal (Simulated WCE Google SSO) -->
+<div class="modal-overlay hidden" id="googleModal">
+  <div class="google-modal">
+    <div class="google-modal-header">
+      <svg class="google-icon" viewBox="0 0 24 24" style="width:24px;height:24px;">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      </svg>
+      <div>
+        <h3 class="google-modal-title">Sign in with Google</h3>
+        <span style="font-size:12px;color:#0D3E36;font-weight:600;">Walchand College of Engineering SSO</span>
+      </div>
+    </div>
+    <p class="google-modal-sub">Choose your official WCE Google account to continue to ADHYAY:</p>
 
-<!-- LOGIN JAVASCRIPT -->
+    <!-- Quick account 1 -->
+    <div class="google-quick-acc" id="quickWceAccount">
+      <div class="google-acc-avatar">P</div>
+      <div class="google-acc-info">
+        <strong id="quickAccName">Pratap Dabhade</strong>
+        <span id="quickAccEmail">pratap.dabhade@walchandsangli.ac.in</span>
+      </div>
+    </div>
+
+    <!-- Custom WCE input -->
+    <div style="margin-top: 14px;">
+      <label class="form-label" style="font-size:12px;" for="googleCustomEmail">Or sign in with another WCE Google email:</label>
+      <input type="email" id="googleCustomEmail" class="form-input" placeholder="your.name@walchandsangli.ac.in" style="font-size:13px;padding:8px 12px;margin-bottom:10px;">
+      <button class="btn-auth-submit" id="btnGoogleCustomLogin" style="padding:9px;font-size:13px;">Continue with this account</button>
+      <div class="login-message" id="googleModalMessage" style="margin-top:8px;"></div>
+    </div>
+
+    <div style="margin-top:16px;text-align:right;">
+      <button type="button" id="btnCloseGoogleModal" style="background:none;border:none;color:#6B7280;font-size:13px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script src="login.js"></script>
-
 </body>
 </html>

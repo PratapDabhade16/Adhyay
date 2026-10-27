@@ -56,10 +56,11 @@ public class LectureController {
                     .body(lecture);
 
         } catch (Exception e) {
-
+            e.printStackTrace();
+            String errorMsg = e.getMessage() != null && !e.getMessage().isBlank() ? e.getMessage() : e.getClass().getSimpleName();
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
+                    .body(errorMsg);
         }
     }
 

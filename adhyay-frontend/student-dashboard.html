@@ -1,269 +1,614 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b7771">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADHYAY | Good to see you.</title>
+  <link rel="stylesheet" href="adhyay.css">
+  <style>
+    /* ── Lecture Cards Grid ── */
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+    }
+    .lecture-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+    .lecture-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .lecture-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+    .card-thumb {
+      position: relative;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--c, #134E48);
+    }
+    .card-thumb-play {
+      width: 44px;
+      height: 44px;
+      background: rgba(255,255,255,0.22);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      padding-left: 3px;
+    }
+    .card-body {
+      padding: 16px 18px 18px;
+    }
+    .card-chip-row {
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+    .card-meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .card-progress {
+      margin-top: 14px;
+    }
 
-    <title>ADHYAY | Student Dashboard</title>
+    /* ── Watch Theater (Full Overlay matching Image 1) ── */
+    .watch-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .watch-overlay[hidden] {
+      display: none !important;
+    }
+    .watch-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: var(--bg);
+    }
+    .watch-body {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 36px;
+      padding: 0 48px 48px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .watch-primary {
+      min-width: 0;
+    }
+    
+    /* Video Screen Container */
+    .video-screen {
+      position: relative;
+      aspect-ratio: 16/9;
+      width: 100%;
+      background: #18232C;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    #lecturePlayer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    /* Centered Play Button */
+    .video-center-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 64px;
+      height: 64px;
+      background: #F4A526;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #18232C;
+      font-size: 22px;
+      padding-left: 4px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 2;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .video-center-play:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+      background: #FBBF24;
+    }
+    /* Video Controls Bar */
+    .video-bottom-bar {
+      position: relative;
+      z-index: 2;
+      padding: 12px 18px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      color: #fff;
+    }
+    .video-timeline {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 99px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      position: relative;
+    }
+    .video-timeline-fill {
+      width: 64%;
+      height: 100%;
+      background: #F4A526;
+      border-radius: 99px;
+    }
+    .video-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+    }
+    .video-controls-actions {
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .video-controls-actions span:hover {
+      color: #fff;
+    }
 
-    <link rel="stylesheet" href="student-dashboard.css">
+    /* Below Video Info */
+    .watch-info {
+      margin-top: 20px;
+    }
+    .watch-tag-row {
+      margin-bottom: 10px;
+    }
+    .watch-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .watch-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .watch-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Instructor Card */
+    .instructor-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .instructor-avatar-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #EBA83A;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .instructor-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .instructor-dept {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Comments & Doubts */
+    .comments-section {
+      margin-top: 10px;
+    }
+    .comments-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+    .comment-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .comment-avatar-s {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #DDE3EA;
+      color: #374151;
+      font-weight: 700;
+      font-size: 13px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .comment-input-box {
+      flex: 1;
+    }
+    .comment-input-box input {
+      width: 100%;
+      padding: 12px 18px;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .comment-input-box input:focus {
+      border-color: var(--green-dark);
+    }
+
+    /* Comment List Items */
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .comment-item {
+      display: flex;
+      gap: 12px;
+    }
+    .comment-body {
+      flex: 1;
+    }
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .comment-author-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .comment-time {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+    .comment-content {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+
+    /* Up Next Sidebar */
+    .up-next-panel {
+      padding-top: 4px;
+    }
+    .up-next-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .up-next-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .up-next-card {
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: opacity 0.15s;
+    }
+    .up-next-card:hover {
+      opacity: 0.88;
+    }
+    .up-next-thumb {
+      width: 96px;
+      height: 62px;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+      background: var(--bg-c, #134E48);
+    }
+    .up-next-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .up-next-lecture-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 3px;
+    }
+    .up-next-lecture-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1024px) {
+      .watch-body {
+        grid-template-columns: 1fr;
+      }
+      .watch-topbar, .watch-body {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      .lecture-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .lecture-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
+<div class="app-layout">
 
-    <!-- Navigation Bar -->
-    <nav class="topbar">
-        <a class="brand" href="index.html" aria-label="ADHYAY Home">
-            <span class="brand-mark">A</span>
-            <span>
-                ADHYAY
-                <small>Your Learning. Your Chapters.</small>
-            </span>
-        </a>
-
-        <div class="top-actions">
-            <span class="user-chip">
-                <span class="avatar" id="avatarInitial">S</span>
-                <span id="studentName">Student</span>
-            </span>
-
-            <button class="btn btn-outline" id="logoutBtn" type="button">
-                Log out
-            </button>
-        </div>
-    </nav>
-
-    <main class="page-wrap">
-
-        <!-- Welcome Section -->
-        <section class="welcome-panel">
-            <div class="welcome-copy">
-                <p class="eyebrow">STUDENT SPACE</p>
-
-                <h1>
-                    Welcome back,
-                    <span id="welcomeName">Student</span>
-                    <span aria-hidden="true">👋</span>
-                </h1>
-
-                <p>
-                    Your next chapter starts here. Pick up where you left off
-                    or explore your lectures.
-                </p>
-            </div>
-
-            <div class="welcome-art" aria-hidden="true">
-                <div class="art-ring ring-one"></div>
-                <div class="art-ring ring-two"></div>
-                <div class="book-emoji">▤</div>
-                <span class="spark spark-one">✦</span>
-                <span class="spark spark-two">✧</span>
-            </div>
-        </section>
-
-        <!-- Learning Statistics -->
-        <section class="stats-grid" aria-label="Learning summary">
-
-            <article class="stat-card">
-                <span class="stat-icon mint">▤</span>
-                <div>
-                    <p>Available lectures</p>
-                    <strong id="lectureCount">—</strong>
-                    <small>Across all subjects</small>
-                </div>
-            </article>
-
-            <article class="stat-card">
-                <span class="stat-icon blue">▣</span>
-                <div>
-                    <p>Subjects</p>
-                    <strong id="subjectCount">—</strong>
-                    <small>Based on uploaded lectures</small>
-                </div>
-            </article>
-
-            <article class="stat-card">
-                <span class="stat-icon purple">▶</span>
-                <div>
-                    <p>Started learning</p>
-                    <strong id="startedCount">0</strong>
-                    <small>Lectures in your history</small>
-                </div>
-            </article>
-
-            <article class="stat-card">
-                <span class="stat-icon amber">♡</span>
-                <div>
-                    <p>Bookmarks</p>
-                    <strong id="bookmarkCount">0</strong>
-                    <small>Saved for later</small>
-                </div>
-            </article>
-
-        </section>
-
-        <!-- Search and Filters -->
-        <section class="toolbar" aria-label="Search and filter lectures">
-
-            <div class="search-field">
-                <span aria-hidden="true">⌕</span>
-
-                <input
-                    id="lectureSearch"
-                    type="search"
-                    placeholder="Search lectures, subjects or units…"
-                    autocomplete="off"
-                    aria-label="Search lectures"
-                >
-            </div>
-
-            <select id="subjectFilter" aria-label="Filter by subject">
-                <option value="all">All subjects</option>
-            </select>
-
-            <button
-                class="btn btn-soft"
-                id="showBookmarksBtn"
-                type="button"
-                aria-pressed="false"
-            >
-                ♡ Saved lectures
-            </button>
-
-        </section>
-
-        <!-- Continue Watching -->
-        <section class="content-section" id="continueSection">
-
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p>
-                    <h2>Continue watching</h2>
-                </div>
-
-                <span class="section-note">Saved on this device</span>
-            </div>
-
-            <div id="continueGrid" class="lecture-grid">
-                <div class="loading-card">
-                    Loading your learning history…
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Explore Lectures -->
-        <section class="content-section" id="subjectsSection">
-
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">YOUR COURSE LIBRARY</p>
-                    <h2>Explore lectures</h2>
-
-                    <p class="section-subtitle">
-                        Browse recorded classes uploaded by your faculty.
-                    </p>
-                </div>
-
-                <span class="result-count" id="resultCount"></span>
-            </div>
-
-            <div id="lecturesGrid" class="lecture-grid">
-                <div class="loading-card">
-                    Loading lectures…
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Saved Lectures -->
-        <section class="content-section" id="bookmarksSection" hidden>
-
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">KEEP THESE CLOSE</p>
-                    <h2>Your saved lectures</h2>
-                </div>
-
-                <button class="text-button" id="backToAllBtn" type="button">
-                    Back to all lectures →
-                </button>
-            </div>
-
-            <div id="bookmarksGrid" class="lecture-grid"></div>
-
-        </section>
-
-        <!-- Status Messages -->
-        <div
-            id="pageMessage"
-            class="page-message"
-            role="status"
-            aria-live="polite"
-        ></div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer>
-        <span class="footer-brand">ADHYAY</span>
-        <span>Your Learning. Your Chapters.</span>
-        <span>© 2026 ADHYAY</span>
-    </footer>
-
-    <!-- Video Player Modal -->
-    <div
-        class="video-modal"
-        id="videoModal"
-        hidden
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="playerTitle"
-    >
-
-        <div
-            class="modal-backdrop"
-            data-close-modal="true"
-        ></div>
-
-        <div class="modal-panel">
-
-            <div class="modal-heading">
-                <div>
-                    <p class="eyebrow">NOW PLAYING</p>
-                    <h2 id="playerTitle">Lecture</h2>
-                    <p id="playerMeta"></p>
-                </div>
-
-                <button
-                    class="close-btn"
-                    id="closePlayerBtn"
-                    type="button"
-                    aria-label="Close video player"
-                >
-                    ×
-                </button>
-            </div>
-
-            <video
-                id="lecturePlayer"
-                controls
-                playsinline
-                preload="metadata"
-            ></video>
-
-            <p class="player-note">
-                Your playback position is saved on this device so you can
-                continue later.
-            </p>
-
-        </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrap">
+        <div class="logo-mark">A</div>
+        <span class="logo-name">ADHYAY</span>
+      </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="student-dashboard.js"></script>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="navHome" data-view="home" type="button">Home</button>
+      <button class="nav-item" id="navContinue" data-view="continue" type="button">Continue watching</button>
+      <button class="nav-item" id="navSaved" data-view="saved" type="button">Saved lectures</button>
+      <button class="nav-item" id="navHistory" data-view="history" type="button">Watch history</button>
+    </nav>
 
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">S</div>
+      <div>
+        <div class="sidebar-user-name" id="studentName">Student name</div>
+        <div class="sidebar-user-role">Student</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div>
+        <h1 class="page-title" id="welcomeTitle">Good to see you.</h1>
+        <p class="page-subtitle">Pick up where you left off.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="search-wrap" style="width:260px;">
+          <input class="search-input" id="lectureSearch" type="search" placeholder="Search by title, unit or subject" style="padding-left:14px;">
+        </div>
+        <select class="form-select" id="subjectFilter" style="width:auto;min-width:130px;">
+          <option value="all">All subjects</option>
+          <option value="Data Structures">Data Structures</option>
+          <option value="DBMS">DBMS</option>
+          <option value="Operating Systems">Operating Systems</option>
+        </select>
+        <button class="btn-ghost" id="logoutBtn" type="button">Log out</button>
+      </div>
+    </div>
+
+    <!-- 4 Stats Cards -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Available lectures</div>
+        <div class="stat-value" id="lectureCount">00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Enrolled subjects</div>
+        <div class="stat-value" id="subjectCount">00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Watched</div>
+        <div class="stat-value" id="startedCount">00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Bookmarked</div>
+        <div class="stat-value" id="bookmarkCount">00</div>
+      </div>
+    </div>
+
+    <!-- Continue watching section -->
+    <section id="continueSection" hidden>
+      <h2 class="section-title">Continue watching</h2>
+      <div class="lecture-grid" id="continueGrid"></div>
+    </section>
+
+    <!-- All lectures section -->
+    <section id="subjectsSection">
+      <h2 class="section-title" id="lecturesSectionTitle">All lectures</h2>
+      <div class="lecture-grid" id="lecturesGrid">
+        <p style="color:var(--muted);grid-column:1/-1;padding:24px 0;">No lectures available yet. Check back soon!</p>
+      </div>
+    </section>
+
+    <!-- Bookmarks section -->
+    <section id="bookmarksSection" hidden>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 class="section-title" style="margin:0;">Saved lectures</h2>
+        <button class="btn-ghost" id="backToAllBtn" type="button">← All lectures</button>
+      </div>
+      <div class="lecture-grid" id="bookmarksGrid"></div>
+    </section>
+
+    <div id="pageMessage" role="status" aria-live="polite"></div>
+  </main>
+</div>
+
+<!-- ================= WATCH THEATER OVERLAY (Image 1) ================= -->
+<div class="watch-overlay" id="videoModal" hidden>
+  <!-- Topbar -->
+  <div class="watch-topbar">
+    <div class="logo-wrap">
+      <div class="logo-mark">A</div>
+      <span class="logo-name">ADHYAY</span>
+    </div>
+    <button class="btn-outline" id="closePlayerBtn" type="button">Back to lectures</button>
+  </div>
+
+  <!-- Body -->
+  <div class="watch-body">
+    <!-- Left Column: Video + Details + Comments -->
+    <div class="watch-primary">
+      
+      <!-- Video Screen -->
+      <div class="video-screen" id="videoScreenContainer">
+        <video id="lecturePlayer" playsinline preload="metadata"></video>
+        <div class="video-center-play" id="centerPlayBtn" onclick="togglePlayPause()">▶</div>
+        <div class="video-bottom-bar">
+          <div class="video-timeline">
+            <div class="video-timeline-fill" id="timelineFill"></div>
+          </div>
+          <div class="video-controls-row">
+            <span id="videoTimeDisplay">24:10 / 37:45</span>
+            <div class="video-controls-actions">
+              <span id="theaterToggleBtn">Theater</span>
+              <span>·</span>
+              <span id="playerFullscreenBtn">Fullscreen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Meta -->
+      <div class="watch-info">
+        <div class="watch-tag-row">
+          <span class="chip chip-green" id="playerSubjectTag">Data Structures · Unit 3</span>
+        </div>
+        <div class="watch-title-row">
+          <h1 class="watch-title" id="playerTitle">Trees and Traversals</h1>
+          <div class="watch-btn-group">
+            <button class="btn-outline" id="likeLectureBtn" type="button">Like</button>
+            <button class="btn-outline" id="bookmarkCurrentBtn" type="button">Bookmark</button>
+            <button class="btn-outline" id="shareLectureBtn" type="button">Share</button>
+          </div>
+        </div>
+
+        <!-- Faculty row -->
+        <div class="instructor-row">
+          <div class="instructor-avatar-circle" id="facultyAvatar">F</div>
+          <div>
+            <div class="instructor-name" id="playerFacultyName">Faculty name</div>
+            <div class="instructor-dept">Department of Information Technology</div>
+          </div>
+        </div>
+
+        <!-- Comments & doubts -->
+        <section class="comments-section">
+          <h2 class="comments-title">Comments and doubts</h2>
+          
+          <div class="comment-input-wrap">
+            <div class="comment-avatar-s" id="commentUserAvatar">S</div>
+            <div class="comment-input-box">
+              <input id="commentInput" type="text" placeholder="Ask a doubt or add a comment">
+            </div>
+          </div>
+
+          <div class="comment-list" id="commentsList">
+            <p style="color:var(--muted);font-size:13px;padding:8px 0;">No comments or doubts yet. Ask the first question!</p>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Up Next -->
+    <aside class="up-next-panel">
+      <h2 class="up-next-title">Up next</h2>
+      <div class="up-next-list" id="watchPlaylist">
+        <p style="color:var(--muted);font-size:13px;">No upcoming lectures in this subject yet.</p>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+  // Demo helper so clicking any card opens the modal smoothly
+  function openDemoWatch(id) {
+    const modal = document.getElementById('videoModal');
+    if (modal) {
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function togglePlayPause() {
+    const player = document.getElementById('lecturePlayer');
+    const playBtn = document.getElementById('centerPlayBtn');
+    if (!player) return;
+    if (player.paused) {
+      player.play().then(() => {
+        if (playBtn) playBtn.style.opacity = '0';
+      }).catch(() => {});
+    } else {
+      player.pause();
+      if (playBtn) playBtn.style.opacity = '1';
+    }
+  }
+</script>
+<script src="student-dashboard.js?v=2"></script>
 </body>
 </html>

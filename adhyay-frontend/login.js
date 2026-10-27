@@ -1,897 +1,380 @@
 // =====================================================
-// ADHYAY LOGIN SYSTEM
+// ADHYAY — Institutional Authentication System
+// Strict @walchandsangli.ac.in Domain Enforcement
+// Instant Account Creation & Direct Sign In + Google SSO
 // =====================================================
 
 const API_URL = "http://localhost:8081/api/auth";
-
-
-// =====================================================
-// CURRENT ROLE
-// =====================================================
+const REQUIRED_DOMAIN = "@walchandsangli.ac.in";
 
 let selectedRole = "STUDENT";
+let currentTab = "signin"; // 'signin' or 'create'
 
+const ROLE_HINTS = {
+    STUDENT: "Students watch, bookmark and ask doubts in lectures.",
+    FACULTY: "Faculty upload lectures, manage courses and resolve doubts.",
+    ADMIN: "Administrators manage campus users, courses and institutional access."
+};
 
-// =====================================================
-// ELEMENTS
-// =====================================================
+document.addEventListener("DOMContentLoaded", () => {
+    // UI Elements
+    const tabSignIn = document.getElementById("tabSignIn");
+    const tabCreate = document.getElementById("tabCreate");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
 
-const roleButtons =
-    document.querySelectorAll(".role-btn");
+    const pageHeading = document.getElementById("pageHeading");
+    const pageSubheading = document.getElementById("pageSubheading");
+    const roleHintText = document.getElementById("roleHintText");
+    const roleButtons = document.querySelectorAll(".role-btn");
+    const loginMessage = document.getElementById("loginMessage");
+    const registerMessage = document.getElementById("registerMessage");
+    const switchToRegister = document.getElementById("switchToRegister");
+    const switchToLogin = document.getElementById("switchToLogin");
+    const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 
-const loginForm =
-    document.getElementById("loginForm");
+    // Google SSO Elements
+    const googleSignInBtn = document.getElementById("googleSignInBtn");
+    const googleModal = document.getElementById("googleModal");
+    const btnCloseGoogleModal = document.getElementById("btnCloseGoogleModal");
+    const quickWceAccount = document.getElementById("quickWceAccount");
+    const btnGoogleCustomLogin = document.getElementById("btnGoogleCustomLogin");
+    const googleCustomEmail = document.getElementById("googleCustomEmail");
+    const googleModalMessage = document.getElementById("googleModalMessage");
 
-const registerForm =
-    document.getElementById("registerForm");
+    // =====================================================
+    // HELPER: Validate @walchandsangli.ac.in Domain
+    // =====================================================
+    function isCollegeDomain(email) {
+        if (!email) return false;
+        return email.trim().toLowerCase().endsWith(REQUIRED_DOMAIN.toLowerCase());
+    }
 
-const showRegister =
-    document.getElementById("showRegister");
+    // =====================================================
+    // TAB SWITCHING
+    // =====================================================
+    function setTab(tab) {
+        currentTab = tab;
+        clearMessage(loginMessage);
+        clearMessage(registerMessage);
 
-const showLogin =
-    document.getElementById("showLogin");
+        if (tab === "signin") {
+            tabSignIn.classList.add("active");
+            tabCreate.classList.remove("active");
+            loginForm.classList.remove("hidden");
+            registerForm.classList.add("hidden");
 
-const loginMessage =
-    document.getElementById("loginMessage");
+            if (pageHeading) pageHeading.textContent = "Sign in";
+            if (pageSubheading) pageSubheading.textContent = "Use your Walchand College email to continue.";
+        } else {
+            tabCreate.classList.add("active");
+            tabSignIn.classList.remove("active");
+            registerForm.classList.remove("hidden");
+            loginForm.classList.add("hidden");
 
-const registerMessage =
-    document.getElementById("registerMessage");
-
-
-// =====================================================
-// ROLE SELECTION
-// =====================================================
-
-roleButtons.forEach(button => {
-
-    button.addEventListener("click", function () {
-
-        roleButtons.forEach(btn => {
-            btn.classList.remove("active");
-        });
-
-        this.classList.add("active");
-
-        selectedRole =
-            this.getAttribute("data-role");
-
-        console.log(
-            "Selected role:",
-            selectedRole
-        );
-
-        const roleText =
-            document.getElementById(
-                "registerRoleText"
-            );
-
-        if (roleText) {
-
-            if (selectedRole === "STUDENT") {
-                roleText.textContent = "Student";
-            }
-
-            else if (selectedRole === "FACULTY") {
-                roleText.textContent = "Faculty";
-            }
-
-            else if (selectedRole === "ADMIN") {
-                roleText.textContent = "Admin";
-            }
+            if (pageHeading) pageHeading.textContent = "Create your account";
+            if (pageSubheading) pageSubheading.textContent = "Only @walchandsangli.ac.in college accounts can register.";
         }
+    }
+
+    if (tabSignIn) tabSignIn.addEventListener("click", () => setTab("signin"));
+    if (tabCreate) tabCreate.addEventListener("click", () => setTab("create"));
+    if (switchToRegister) switchToRegister.addEventListener("click", () => setTab("create"));
+    if (switchToLogin) switchToLogin.addEventListener("click", () => setTab("signin"));
+
+    // Role selector
+    roleButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            roleButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedRole = btn.getAttribute("data-role") || "STUDENT";
+
+            if (roleHintText) {
+                roleHintText.textContent = ROLE_HINTS[selectedRole] || ROLE_HINTS.STUDENT;
+            }
+
+            clearMessage(loginMessage);
+            clearMessage(registerMessage);
+        });
     });
 
-});
-
-
-// =====================================================
-// PASSWORD TOGGLE
-// =====================================================
-
-function setupPasswordToggle(
-    buttonId,
-    inputId
-) {
-
-    const button =
-        document.getElementById(buttonId);
-
-    const input =
-        document.getElementById(inputId);
-
-    if (!button || !input) {
-        return;
+    if (forgotPasswordBtn) {
+        forgotPasswordBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            alert("Please contact the Walchand College IT administrator to reset your college credentials.");
+        });
     }
 
-    button.addEventListener(
-        "click",
-        function () {
-
-            if (input.type === "password") {
-
-                input.type = "text";
-
-                this.innerHTML =
-                    '<i class="bi bi-eye-slash"></i>';
-
-            } else {
-
-                input.type = "password";
-
-                this.innerHTML =
-                    '<i class="bi bi-eye"></i>';
-            }
-
-        }
-    );
-}
-
-
-setupPasswordToggle(
-    "toggleLoginPassword",
-    "loginPassword"
-);
-
-setupPasswordToggle(
-    "toggleRegisterPassword",
-    "registerPassword"
-);
-
-
-// =====================================================
-// SHOW MESSAGE
-// =====================================================
-
-function showMessage(
-    element,
-    message,
-    type
-) {
-
-    if (!element) {
-        return;
-    }
-
-    element.textContent = message;
-
-    element.className =
-        "message " + type;
-}
-
-
-// =====================================================
-// CLEAR MESSAGE
-// =====================================================
-
-function clearMessage(element) {
-
-    if (!element) {
-        return;
-    }
-
-    element.textContent = "";
-
-    element.className = "message";
-}
-
-
-// =====================================================
-// SHOW REGISTER
-// =====================================================
-
-if (showRegister) {
-
-    showRegister.addEventListener(
-        "click",
-        function () {
-
-            loginForm.classList.add("d-none");
-
-            document
-                .querySelector(".role-section")
-                .classList.add("d-none");
-
-            document
-                .querySelector(".login-options")
-                .classList.add("d-none");
-
-            registerForm.classList.remove("d-none");
-
+    // =====================================================
+    // 1. SIGN IN SUBMIT (Direct & Instant)
+    // =====================================================
+    if (loginForm) {
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
             clearMessage(loginMessage);
 
-        }
-    );
-
-}
-
-
-// =====================================================
-// SHOW LOGIN
-// =====================================================
-
-if (showLogin) {
-
-    showLogin.addEventListener(
-        "click",
-        function () {
-
-            registerForm.classList.add("d-none");
-
-            loginForm.classList.remove("d-none");
-
-            document
-                .querySelector(".role-section")
-                .classList.remove("d-none");
-
-            document
-                .querySelector(".login-options")
-                .classList.remove("d-none");
-
-            clearMessage(registerMessage);
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// LOGIN
-// =====================================================
-
-if (loginForm) {
-
-    loginForm.addEventListener(
-        "submit",
-        async function (event) {
-
-            event.preventDefault();
-
-            console.log(
-                "LOGIN BUTTON CLICKED"
-            );
-
-            clearMessage(loginMessage);
-
-            const emailInput =
-                document.getElementById(
-                    "loginEmail"
-                );
-
-            const passwordInput =
-                document.getElementById(
-                    "loginPassword"
-                );
-
-            const loginButton =
-                document.getElementById(
-                    "loginButton"
-                );
-
-            const buttonText =
-                document.getElementById(
-                    "loginButtonText"
-                );
-
-            const spinner =
-                document.getElementById(
-                    "loginSpinner"
-                );
-
-
-            const email =
-                emailInput.value.trim();
-
-            const password =
-                passwordInput.value;
-
-
-            // -----------------------------------------
-            // VALIDATION
-            // -----------------------------------------
+            const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+            const password = document.getElementById("loginPassword").value;
+            const submitBtn = document.getElementById("loginButton");
+            const btnText = document.getElementById("loginButtonText");
 
             if (!email) {
-
-                showMessage(
-                    loginMessage,
-                    "Please enter your email address.",
-                    "error"
-                );
-
-                emailInput.focus();
-
+                showMessage(loginMessage, "Please enter your college email.", "error");
+                document.getElementById("loginEmail").focus();
                 return;
             }
 
+            // Strict domain check
+            if (!isCollegeDomain(email)) {
+                showMessage(loginMessage, `Access restricted: Only official ${REQUIRED_DOMAIN} college accounts are permitted.`, "error");
+                document.getElementById("loginEmail").focus();
+                return;
+            }
 
             if (!password) {
-
-                showMessage(
-                    loginMessage,
-                    "Please enter your password.",
-                    "error"
-                );
-
-                passwordInput.focus();
-
+                showMessage(loginMessage, "Please enter your password.", "error");
+                document.getElementById("loginPassword").focus();
                 return;
             }
 
-
-            // -----------------------------------------
-            // LOADING
-            // -----------------------------------------
-
-            loginButton.disabled = true;
-
-            buttonText.textContent =
-                "Logging in...";
-
-            spinner.classList.remove("d-none");
-
+            submitBtn.disabled = true;
+            if (btnText) btnText.textContent = "Signing in...";
 
             try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
 
-                console.log(
-                    "Connecting to:",
-                    API_URL + "/login"
-                );
-
-
-                // -----------------------------------------
-                // API REQUEST
-                // -----------------------------------------
-
-                const response =
-                    await fetch(
-                        API_URL + "/login",
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-                                email: email,
-                                password: password
-                            })
-                        }
-                    );
-
-
-                console.log(
-                    "HTTP status:",
-                    response.status
-                );
-
-
-                // -----------------------------------------
-                // READ RESPONSE
-                // -----------------------------------------
-
-                const responseText =
-                    await response.text();
-
-                console.log(
-                    "Server response:",
-                    responseText
-                );
-
-
-                let data;
-
-                try {
-
-                    data =
-                        JSON.parse(
-                            responseText
-                        );
-
-                } catch (error) {
-
-                    data =
-                        responseText;
-                }
-
-
-                // -----------------------------------------
-                // LOGIN FAILED
-                // -----------------------------------------
+                const data = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
-
-                    let errorMessage =
-                        "Invalid email or password.";
-
-                    if (
-                        typeof data ===
-                        "string" &&
-                        data.length > 0
-                    ) {
-
-                        errorMessage = data;
-
-                    }
-
-                    else if (
-                        data &&
-                        data.message
-                    ) {
-
-                        errorMessage =
-                            data.message;
-                    }
-
-
-                    showMessage(
-                        loginMessage,
-                        errorMessage,
-                        "error"
-                    );
-
+                    const errorMsg = data?.message || "Invalid email or password.";
+                    showMessage(loginMessage, errorMsg, "error");
                     return;
                 }
 
+                // Successful direct sign-in
+                const serverRole = String(data.role || selectedRole).toUpperCase();
+                localStorage.setItem("adhyayUser", JSON.stringify(data));
 
-                // -----------------------------------------
-                // CHECK RESPONSE
-                // -----------------------------------------
+                showMessage(loginMessage, `Welcome back! Redirecting to ${serverRole.toLowerCase()} dashboard...`, "success");
 
-                if (
-                    !data ||
-                    typeof data !== "object"
-                ) {
+                setTimeout(() => {
+                    redirectByRole(serverRole);
+                }, 500);
 
-                    showMessage(
-                        loginMessage,
-                        "Invalid response received from server.",
-                        "error"
-                    );
-
-                    return;
-                }
-
-
-                console.log(
-                    "Logged in user:",
-                    data
-                );
-
-
-                // -----------------------------------------
-                // CHECK ROLE
-                // -----------------------------------------
-
-                const serverRole =
-                    String(
-                        data.role || ""
-                    ).toUpperCase();
-
-
-                if (
-                    serverRole !==
-                    selectedRole
-                ) {
-
-                    showMessage(
-                        loginMessage,
-
-                        "Wrong role selected. " +
-                        "This account is registered as " +
-                        serverRole + ".",
-
-                        "error"
-                    );
-
-                    return;
-                }
-
-
-                // -----------------------------------------
-                // SAVE USER
-                // -----------------------------------------
-
-                localStorage.setItem(
-                    "adhyayUser",
-                    JSON.stringify(data)
-                );
-
-
-                // -----------------------------------------
-                // SUCCESS
-                // -----------------------------------------
-
-                showMessage(
-                    loginMessage,
-                    "Login successful! Redirecting...",
-                    "success"
-                );
-
-
-                // -----------------------------------------
-                // REDIRECT
-                // -----------------------------------------
-
-                setTimeout(
-                    function () {
-
-                        if (
-                            serverRole ===
-                            "STUDENT"
-                        ) {
-
-                            window.location.href =
-                                "student-dashboard.html";
-                        }
-
-                        else if (
-                            serverRole ===
-                            "FACULTY"
-                        ) {
-
-                            window.location.href =
-                                "faculty-dashboard.html";
-                        }
-
-                        else if (
-                            serverRole ===
-                            "ADMIN"
-                        ) {
-
-                            window.location.href =
-                                "admin-dashboard.html";
-                        }
-
-                        else {
-
-                            showMessage(
-                                loginMessage,
-                                "Unknown user role: " +
-                                serverRole,
-                                "error"
-                            );
-                        }
-
-                    },
-                    700
-                );
-
+            } catch (err) {
+                console.error("Login check failed:", err);
+                showMessage(loginMessage, "Unable to connect to backend on port 8081.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                if (btnText) btnText.textContent = "Sign in";
             }
+        });
+    }
 
-            catch (error) {
-
-                console.error(
-                    "LOGIN ERROR:",
-                    error
-                );
-
-                showMessage(
-                    loginMessage,
-
-                    "Cannot connect to ADHYAY backend. " +
-                    "Make sure Spring Boot is running on port 8081.",
-
-                    "error"
-                );
-
-            }
-
-            finally {
-
-                loginButton.disabled = false;
-
-                buttonText.textContent =
-                    "Login";
-
-                spinner.classList.add(
-                    "d-none"
-                );
-            }
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// REGISTER
-// =====================================================
-
-if (registerForm) {
-
-    registerForm.addEventListener(
-        "submit",
-        async function (event) {
-
-            event.preventDefault();
-
+    // =====================================================
+    // 2. CREATE ACCOUNT SUBMIT (Direct & Instant)
+    // =====================================================
+    if (registerForm) {
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
             clearMessage(registerMessage);
 
-
-            const name =
-                document.getElementById(
-                    "registerName"
-                ).value.trim();
-
-            const email =
-                document.getElementById(
-                    "registerEmail"
-                ).value.trim();
-
-            const password =
-                document.getElementById(
-                    "registerPassword"
-                ).value;
-
-
-            // -----------------------------------------
-            // VALIDATION
-            // -----------------------------------------
+            const name = document.getElementById("registerName").value.trim();
+            const department = document.getElementById("registerDept").value.trim();
+            const email = document.getElementById("registerEmail").value.trim().toLowerCase();
+            const password = document.getElementById("registerPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const termsAgree = document.getElementById("termsAgree")?.checked;
+            const submitBtn = document.getElementById("registerButton");
 
             if (!name) {
-
-                showMessage(
-                    registerMessage,
-                    "Please enter your name.",
-                    "error"
-                );
-
+                showMessage(registerMessage, "Please enter your full name.", "error");
+                document.getElementById("registerName").focus();
                 return;
             }
 
-
-            if (!email) {
-
-                showMessage(
-                    registerMessage,
-                    "Please enter your email.",
-                    "error"
-                );
-
+            // Strict domain check
+            if (!email || !isCollegeDomain(email)) {
+                showMessage(registerMessage, `Access restricted: Only official ${REQUIRED_DOMAIN} college accounts are permitted.`, "error");
+                document.getElementById("registerEmail").focus();
                 return;
             }
 
-
-            if (!password) {
-
-                showMessage(
-                    registerMessage,
-                    "Please create a password.",
-                    "error"
-                );
-
+            if (!password || password.length < 6) {
+                showMessage(registerMessage, "Password must be at least 6 characters.", "error");
+                document.getElementById("registerPassword").focus();
                 return;
             }
 
-
-            if (password.length < 6) {
-
-                showMessage(
-                    registerMessage,
-                    "Password must contain at least 6 characters.",
-                    "error"
-                );
-
+            if (password !== confirmPassword) {
+                showMessage(registerMessage, "Passwords do not match. Please re-enter.", "error");
+                document.getElementById("confirmPassword").focus();
                 return;
             }
 
+            if (!termsAgree) {
+                showMessage(registerMessage, "Please agree to the Walchand College policies.", "error");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Creating account...";
 
             try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        password,
+                        role: selectedRole,
+                        department: department || "General"
+                    })
+                });
 
-                console.log(
-                    "Registering user..."
-                );
-
-
-                const response =
-                    await fetch(
-                        API_URL + "/register",
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-
-                                name: name,
-
-                                email: email,
-
-                                password: password,
-
-                                role: selectedRole
-
-                            })
-                        }
-                    );
-
-
-                const responseText =
-                    await response.text();
-
-
-                let data;
-
-                try {
-
-                    data =
-                        JSON.parse(
-                            responseText
-                        );
-
-                } catch (error) {
-
-                    data =
-                        responseText;
-                }
-
+                const data = await response.json();
 
                 if (!response.ok) {
-
-                    let message =
-                        "Registration failed.";
-
-                    if (
-                        typeof data ===
-                        "string"
-                    ) {
-
-                        message = data;
-
-                    }
-
-                    else if (
-                        data &&
-                        data.message
-                    ) {
-
-                        message =
-                            data.message;
-                    }
-
-
-                    showMessage(
-                        registerMessage,
-                        message,
-                        "error"
-                    );
-
+                    showMessage(registerMessage, data.message || "Registration failed. Email may already be in use.", "error");
                     return;
                 }
 
+                // Account successfully registered! Auto-login
+                const serverRole = String(data.role || selectedRole).toUpperCase();
+                localStorage.setItem("adhyayUser", JSON.stringify(data));
 
-                // -----------------------------------------
-                // SUCCESS
-                // -----------------------------------------
+                showMessage(registerMessage, `Account created successfully! Logging you into your dashboard...`, "success");
 
-                showMessage(
-                    registerMessage,
-                    "Registration successful! Please login.",
-                    "success"
-                );
+                setTimeout(() => {
+                    redirectByRole(serverRole);
+                }, 600);
 
+            } catch (err) {
+                console.error("Register failed:", err);
+                showMessage(registerMessage, "Unable to connect to backend on port 8081.", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Create account";
+            }
+        });
+    }
 
-                // Clear fields
+    // =====================================================
+    // 3. GOOGLE SSO WORKFLOW (@walchandsangli.ac.in restricted)
+    // =====================================================
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener("click", () => {
+            clearMessage(googleModalMessage);
+            googleModal.classList.remove("hidden");
+        });
+    }
 
-                document.getElementById(
-                    "registerName"
-                ).value = "";
+    if (btnCloseGoogleModal) {
+        btnCloseGoogleModal.addEventListener("click", () => {
+            googleModal.classList.add("hidden");
+        });
+    }
 
-                document.getElementById(
-                    "registerEmail"
-                ).value = "";
+    // Quick account click
+    if (quickWceAccount) {
+        quickWceAccount.addEventListener("click", async () => {
+            const email = document.getElementById("quickAccEmail").textContent.trim();
+            const name = document.getElementById("quickAccName").textContent.trim();
+            await executeGoogleLogin(email, name);
+        });
+    }
 
-                document.getElementById(
-                    "registerPassword"
-                ).value = "";
+    // Custom WCE email click in modal
+    if (btnGoogleCustomLogin) {
+        btnGoogleCustomLogin.addEventListener("click", async () => {
+            const email = googleCustomEmail.value.trim().toLowerCase();
+            clearMessage(googleModalMessage);
 
-
-                // Go back to login
-
-                setTimeout(
-                    function () {
-
-                        registerForm.classList.add(
-                            "d-none"
-                        );
-
-                        loginForm.classList.remove(
-                            "d-none"
-                        );
-
-                        document
-                            .querySelector(
-                                ".role-section"
-                            )
-                            .classList.remove(
-                                "d-none"
-                            );
-
-                        document
-                            .querySelector(
-                                ".login-options"
-                            )
-                            .classList.remove(
-                                "d-none"
-                            );
-
-                        clearMessage(
-                            registerMessage
-                        );
-
-                    },
-                    1200
-                );
-
+            if (!email) {
+                showMessage(googleModalMessage, "Please enter your college Google email.", "error");
+                return;
             }
 
-            catch (error) {
-
-                console.error(
-                    "REGISTER ERROR:",
-                    error
-                );
-
-                showMessage(
-                    registerMessage,
-                    "Cannot connect to ADHYAY backend.",
-                    "error"
-                );
+            if (!isCollegeDomain(email)) {
+                showMessage(googleModalMessage, `Access Denied: Only official ${REQUIRED_DOMAIN} Google accounts are permitted.`, "error");
+                return;
             }
 
+            const inferredName = email.split("@")[0].replace(".", " ").replace(/\b\w/g, c => c.toUpperCase());
+            await executeGoogleLogin(email, inferredName);
+        });
+    }
+
+    async function executeGoogleLogin(email, name) {
+        if (!isCollegeDomain(email)) {
+            showMessage(googleModalMessage, `Access Denied: Only ${REQUIRED_DOMAIN} accounts allowed.`, "error");
+            return;
         }
-    );
 
-}
+        showMessage(googleModalMessage, "Authenticating with Walchand College SSO...", "success");
 
+        try {
+            const response = await fetch(`${API_URL}/google-login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    name,
+                    role: selectedRole,
+                    department: "Engineering"
+                })
+            });
 
-// =====================================================
-// FORGOT PASSWORD
-// =====================================================
+            const data = await response.json();
 
-const forgotPassword =
-    document.getElementById(
-        "forgotPassword"
-    );
+            if (!response.ok) {
+                showMessage(googleModalMessage, data.message || "Google authentication failed.", "error");
+                return;
+            }
 
-if (forgotPassword) {
+            localStorage.setItem("adhyayUser", JSON.stringify(data));
+            showMessage(googleModalMessage, `Authenticated as ${data.name}! Redirecting...`, "success");
 
-    forgotPassword.addEventListener(
-        "click",
-        function (event) {
+            setTimeout(() => {
+                redirectByRole(data.role || selectedRole);
+            }, 600);
 
-            event.preventDefault();
-
-            alert(
-                "Forgot password functionality will be added soon."
-            );
-
+        } catch (err) {
+            console.error("Google login failed:", err);
+            showMessage(googleModalMessage, "Unable to complete Google authentication.", "error");
         }
-    );
+    }
 
-}
+    // =====================================================
+    // UI HELPERS
+    // =====================================================
+    function showMessage(element, text, type) {
+        if (!element) return;
+        element.textContent = text;
+        element.className = `login-message ${type}`;
+        element.style.display = "block";
+    }
 
+    function clearMessage(element) {
+        if (!element) return;
+        element.textContent = "";
+        element.className = "login-message";
+        element.style.display = "none";
+    }
 
-// =====================================================
-// PAGE LOADED
-// =====================================================
-
-console.log(
-    "ADHYAY login.js loaded successfully."
-);
-
-console.log(
-    "API:",
-    API_URL
-);
-
-console.log(
-    "Default role:",
-    selectedRole
-);
+    function redirectByRole(role) {
+        const normalized = String(role || "").toUpperCase();
+        if (normalized === "FACULTY") {
+            window.location.href = "faculty-dashboard.html";
+        } else if (normalized === "ADMIN") {
+            window.location.href = "admin-dashboard.html";
+        } else {
+            window.location.href = "student-dashboard.html";
+        }
+    }
+});
