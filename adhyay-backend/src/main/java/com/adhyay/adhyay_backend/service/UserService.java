@@ -69,6 +69,16 @@ public class UserService {
             throw new RuntimeException("Invalid email or password");
         }
 
+        if ("DEACTIVATED".equalsIgnoreCase(user.getStatus())) {
+            throw new RuntimeException("Your account has been deactivated by the administrator.");
+        }
+        if ("REJECTED".equalsIgnoreCase(user.getStatus())) {
+            throw new RuntimeException("Your account registration was not approved.");
+        }
+        if ("PENDING_APPROVAL".equalsIgnoreCase(user.getStatus())) {
+            throw new RuntimeException("Your account is awaiting administrative approval.");
+        }
+
         return user;
     }
 

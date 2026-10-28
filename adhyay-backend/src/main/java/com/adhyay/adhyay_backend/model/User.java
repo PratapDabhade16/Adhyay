@@ -25,10 +25,13 @@ public class User {
 
     private String rollNumber;
 
+    private String status = "ACTIVE"; // ACTIVE, DEACTIVATED, PENDING_APPROVAL, REJECTED
+
     private Instant createdAt;
 
     // Default constructor
     public User() {
+        this.status = "ACTIVE";
         this.createdAt = Instant.now();
     }
 
@@ -79,24 +82,55 @@ public class User {
         return role;
     }
 
+    private String prnNumber;
+    private String branch;
+
     public void setRole(String role) {
         this.role = role;
     }
 
     public String getDepartment() {
-        return department;
+        return department != null ? department : branch;
     }
 
     public void setDepartment(String department) {
         this.department = department;
+        this.branch = department;
+    }
+
+    public String getBranch() {
+        return branch != null ? branch : department;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+        this.department = branch;
     }
 
     public String getRollNumber() {
-        return rollNumber;
+        return rollNumber != null ? rollNumber : prnNumber;
     }
 
     public void setRollNumber(String rollNumber) {
         this.rollNumber = rollNumber;
+        this.prnNumber = rollNumber;
+    }
+
+    public String getPrnNumber() {
+        return prnNumber != null ? prnNumber : rollNumber;
+    }
+
+    public void setPrnNumber(String prnNumber) {
+        this.prnNumber = prnNumber;
+        this.rollNumber = prnNumber;
+    }
+
+    public String getStatus() {
+        return status != null ? status : "ACTIVE";
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Instant getCreatedAt() {

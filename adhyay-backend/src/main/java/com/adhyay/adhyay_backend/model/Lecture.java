@@ -21,9 +21,14 @@ public class Lecture {
     private String publicId;
 
     private String uploadedBy;
+    private String status = "APPROVED"; // APPROVED, PENDING, REJECTED
+    private int views = 0;
+    private String semester;
     private Instant createdAt;
 
     public Lecture() {
+        this.status = "APPROVED";
+        this.views = 0;
         this.createdAt = Instant.now();
     }
 
@@ -97,6 +102,30 @@ public class Lecture {
 
     public void setUploadedBy(String uploadedBy) {
         this.uploadedBy = uploadedBy;
+    }
+
+    public String getStatus() {
+        return status != null ? status : "APPROVED";
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getViews() {
+        return views;
+    }
+
+    public void setViews(int views) {
+        this.views = views;
+    }
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
     }
 
     public Instant getCreatedAt() {

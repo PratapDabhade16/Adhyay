@@ -3,17 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADHYAY | Campus overview</title>
+  <title>ADHYAY | Institutional Administration</title>
   <link rel="stylesheet" href="adhyay.css">
   <style>
+    /* Admin specific layout styles */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .user-avatar-cell {
       display: inline-flex;
       align-items: center;
       gap: 12px;
     }
     .user-cell-circle {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: #DDE3EA;
       color: #374151;
@@ -22,6 +35,187 @@
       display: grid;
       place-items: center;
       flex-shrink: 0;
+    }
+
+    /* Modal styling */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 62, 54, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      place-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.open {
+      display: grid;
+    }
+    .modal-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+      overflow: hidden;
+      animation: modalSlide 0.2s ease-out;
+    }
+    @keyframes modalSlide {
+      from { transform: translateY(12px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--muted);
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-body {
+      padding: 24px;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      background: #FAF9F6;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: #FAF9F6;
+      color: var(--text);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--green-mid);
+      background: #FFF;
+    }
+
+    /* Action button badges */
+    .btn-action {
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action-activate {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border-color: #C8E6C9;
+    }
+    .btn-action-activate:hover {
+      background: #C8E6C9;
+    }
+    .btn-action-deactivate {
+      background: #FFF3E0;
+      color: #E65100;
+      border-color: #FFE0B2;
+    }
+    .btn-action-deactivate:hover {
+      background: #FFE0B2;
+    }
+    .btn-action-delete {
+      background: #FFEBEE;
+      color: #C62828;
+      border-color: #FFCDD2;
+    }
+    .btn-action-delete:hover {
+      background: #FFCDD2;
+    }
+    .btn-action-approve {
+      background: #E0F2F1;
+      color: #00695C;
+      border-color: #B2DFDB;
+    }
+    .btn-action-reject {
+      background: #FBE9E7;
+      color: #D84315;
+      border-color: #FFCCBC;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-active {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    .badge-deactivated {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+    .badge-pending {
+      background: #FFF8E1;
+      color: #F57F17;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--green-dark);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      font-weight: 500;
+      z-index: 2000;
+      display: none;
+      animation: toastIn 0.25s ease;
+    }
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
@@ -38,79 +232,409 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" type="button">Overview</button>
-      <button class="nav-item" type="button">Users</button>
-      <button class="nav-item" type="button">Lectures</button>
+      <button class="nav-item active" data-tab="overview" type="button">Overview</button>
+      <button class="nav-item" data-tab="users" type="button">Users</button>
+      <button class="nav-item" data-tab="academic" type="button">Academic</button>
+      <button class="nav-item" data-tab="lectures" type="button">Lectures</button>
+      <button class="nav-item" data-tab="logs" type="button">Security & Logs</button>
     </nav>
 
     <div class="sidebar-user">
       <div class="sidebar-avatar">A</div>
       <div>
-        <div class="sidebar-user-name">Admin name</div>
-        <div class="sidebar-user-role">Administrator</div>
+        <div class="sidebar-user-name" id="adminHeaderName">Administrator</div>
+        <div class="sidebar-user-role">Institutional Admin</div>
       </div>
     </div>
   </aside>
 
-  <!-- MAIN -->
+  <!-- MAIN CONTENT CONTAINER -->
   <main class="main-content">
 
-    <!-- Header -->
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <!-- Global Header with Logout -->
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
       <div>
-        <h1 class="page-title">Campus overview</h1>
-        <p class="page-subtitle">Everything happening across ADHYAY at a glance.</p>
+        <h1 class="page-title" id="pageTitle">Campus overview</h1>
+        <p class="page-subtitle" id="pageSubtitle">Everything happening across ADHYAY at a glance.</p>
       </div>
-      <a class="btn-ghost" href="login.html">Log out</a>
-    </div>
-
-    <!-- 3 Stat cards -->
-    <div class="stats-row" style="grid-template-columns:repeat(3, 1fr); margin-bottom: 28px;">
-      <div class="stat-card">
-        <div class="stat-label">Registered students</div>
-        <div class="stat-value" id="studentCount">00</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Faculty members</div>
-        <div class="stat-value" id="facultyCount">00</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Lectures in system</div>
-        <div class="stat-value" id="totalLectures">00</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span class="chip chip-green" style="font-weight:600;">WCE Campus Active</span>
+        <a class="btn-ghost" id="logoutBtn" href="login.html">Log out</a>
       </div>
     </div>
 
-    <!-- User directory panel -->
-    <div class="panel">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap;">
-        <h2 class="panel-title" style="margin:0;">User directory</h2>
-        <div class="search-wrap" style="width:280px;">
-          <input class="search-input" id="userSearch" type="search" placeholder="Search users" style="padding-left:14px;">
+    <!-- ========================================================
+         VIEW 1: OVERVIEW & ANALYTICS
+         ======================================================== -->
+    <section class="tab-content active" id="viewOverview">
+      <!-- 4 Stat cards -->
+      <div class="stats-row" style="grid-template-columns:repeat(4, 1fr); margin-bottom: 24px;">
+        <div class="stat-card">
+          <div class="stat-label">Registered Students</div>
+          <div class="stat-value" id="kpiStudents">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Faculty Members</div>
+          <div class="stat-value" id="kpiFaculty">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Lectures Cataloged</div>
+          <div class="stat-value" id="kpiLectures">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active / Total Accounts</div>
+          <div class="stat-value" id="kpiActiveUsers">0 / 0</div>
         </div>
       </div>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th style="width:30%;">Name</th>
-            <th style="width:35%;">Email</th>
-            <th style="width:20%;">Role</th>
-            <th style="width:15%;">Status</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody">
-          <tr>
-            <td colspan="4" style="text-align:center;color:var(--muted);padding:36px;">
-              Loading user directory...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Pending Approval Banner (Hidden if 0) -->
+      <div id="pendingAlertBanner" class="panel" style="display:none;background:#FFF9E6;border-color:#F5D880;margin-bottom:24px;padding:16px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:22px;">⏳</span>
+            <div>
+              <strong style="color:#8A5B00;" id="pendingAlertText">Pending registration approvals awaiting your action.</strong>
+              <div style="font-size:12px;color:#A06C00;">Review student and faculty accounts requesting campus access.</div>
+            </div>
+          </div>
+          <button class="btn-secondary" id="btnGoToPendingUsers" style="font-size:13px;padding:7px 14px;">Review Accounts</button>
+        </div>
+      </div>
+
+      <!-- 2 Column Grid for Most Watched + Recent Audit Logs -->
+      <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:20px;align-items:start;">
+        <!-- Most Watched Lectures -->
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h2 class="panel-title" style="margin:0;">🔥 Most Watched Lectures</h2>
+            <button class="btn-ghost" data-tab-switch="lectures" style="font-size:12px;">View all</button>
+          </div>
+          <div id="mostWatchedList">
+            <p style="color:var(--muted);text-align:center;padding:24px;">Loading lecture statistics...</p>
+          </div>
+        </div>
+
+        <!-- Recent Audit Stream -->
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h2 class="panel-title" style="margin:0;">🛡️ Recent Audit Logs</h2>
+            <button class="btn-ghost" data-tab-switch="logs" style="font-size:12px;">All logs</button>
+          </div>
+          <div id="overviewLogsList">
+            <p style="color:var(--muted);text-align:center;padding:24px;">Loading logs...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 2: USER MANAGEMENT
+         ======================================================== -->
+    <section class="tab-content" id="viewUsers">
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:14px;flex-wrap:wrap;">
+          <div>
+            <h2 class="panel-title" style="margin:0;">User Directory & Access Control</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Search, activate, deactivate, approve, or remove institutional accounts.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="search-wrap" style="width:240px;">
+              <input class="search-input" id="userFilterSearch" type="search" placeholder="Search name, email, roll..." style="padding-left:14px;">
+            </div>
+            <select class="form-select" id="userFilterRole" style="width:130px;">
+              <option value="ALL">All Roles</option>
+              <option value="STUDENT">Students</option>
+              <option value="FACULTY">Faculty</option>
+              <option value="ADMIN">Admins</option>
+            </select>
+            <select class="form-select" id="userFilterStatus" style="width:145px;">
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="DEACTIVATED">Deactivated</option>
+              <option value="PENDING_APPROVAL">Pending Approval</option>
+            </select>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:28%;">User</th>
+              <th style="width:24%;">Email</th>
+              <th style="width:14%;">Role</th>
+              <th style="width:14%;">Status</th>
+              <th style="width:20%;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr>
+              <td colspan="5" style="text-align:center;color:var(--muted);padding:36px;">
+                Loading registered users...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 3: ACADEMIC MANAGEMENT
+         ======================================================== -->
+    <section class="tab-content" id="viewAcademic">
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:14px;flex-wrap:wrap;">
+          <div>
+            <h2 class="panel-title" style="margin:0;">Academic Courses & Faculty Allocations</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Organize semesters, subject codes, and faculty assigned to teach courses.</p>
+          </div>
+          <button class="btn-primary" id="btnOpenAddSubjectModal" type="button" style="display:flex;align-items:center;gap:6px;">
+            <span>+ Add New Subject</span>
+          </button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:28%;">Subject & Code</th>
+              <th style="width:18%;">Semester</th>
+              <th style="width:20%;">Department</th>
+              <th style="width:22%;">Assigned Faculty</th>
+              <th style="width:12%;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="academicTableBody">
+            <tr>
+              <td colspan="5" style="text-align:center;color:var(--muted);padding:36px;">
+                Loading academic catalog...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 4: LECTURE MANAGEMENT
+         ======================================================== -->
+    <section class="tab-content" id="viewLectures">
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:14px;flex-wrap:wrap;">
+          <div>
+            <h2 class="panel-title" style="margin:0;">Lecture Moderation & Content Management</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Review uploaded class recordings, approve/reject, edit metadata, or remove content.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="search-wrap" style="width:240px;">
+              <input class="search-input" id="lectureFilterSearch" type="search" placeholder="Search title or faculty..." style="padding-left:14px;">
+            </div>
+            <select class="form-select" id="lectureFilterStatus" style="width:140px;">
+              <option value="ALL">All Status</option>
+              <option value="APPROVED">Approved</option>
+              <option value="PENDING">Pending Review</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:32%;">Lecture Title</th>
+              <th style="width:20%;">Subject & Unit</th>
+              <th style="width:18%;">Uploaded By</th>
+              <th style="width:10%;">Views</th>
+              <th style="width:20%;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="lecturesTableBody">
+            <tr>
+              <td colspan="5" style="text-align:center;color:var(--muted);padding:36px;">
+                Loading lectures catalog...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 5: SECURITY & ACTIVITY LOGS
+         ======================================================== -->
+    <section class="tab-content" id="viewLogs">
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:14px;flex-wrap:wrap;">
+          <div>
+            <h2 class="panel-title" style="margin:0;">Security & Administrative Audit Logs</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Immutable record of all account alterations, permissions, and lecture deletions.</p>
+          </div>
+          <div class="search-wrap" style="width:260px;">
+            <input class="search-input" id="logsSearch" type="search" placeholder="Filter audit trail..." style="padding-left:14px;">
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:20%;">Timestamp</th>
+              <th style="width:20%;">Action Event</th>
+              <th style="width:18%;">Performed By</th>
+              <th style="width:42%;">Audit Details</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <tr>
+              <td colspan="4" style="text-align:center;color:var(--muted);padding:36px;">
+                Loading audit logs...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
   </main>
 </div>
 
-<script src="admin-dashboard.js?v=2"></script>
+<!-- ========================================================
+     MODALS
+     ======================================================== -->
+
+<!-- 1. Add / Edit Subject Modal -->
+<div class="modal-overlay" id="subjectModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title" id="subjectModalTitle">Add Academic Subject</h3>
+      <button class="modal-close" id="btnCloseSubjectModal">&times;</button>
+    </div>
+    <form id="subjectForm">
+      <input type="hidden" id="subjectId">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="subjectName">Subject Name *</label>
+          <input class="form-control" id="subjectName" type="text" placeholder="e.g. Database Management Systems" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="subjectCode">Course Code *</label>
+            <input class="form-control" id="subjectCode" type="text" placeholder="e.g. CS302" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subjectSemester">Semester *</label>
+            <select class="form-control" id="subjectSemester" required>
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5">Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
+              <option value="Semester 7">Semester 7</option>
+              <option value="Semester 8">Semester 8</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="subjectDept">Department</label>
+          <input class="form-control" id="subjectDept" type="text" placeholder="e.g. Computer Science & Engineering">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="subjectFacultyName">Assigned Faculty Name</label>
+            <input class="form-control" id="subjectFacultyName" type="text" placeholder="e.g. Prof. Patil">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subjectFacultyEmail">Faculty Email</label>
+            <input class="form-control" id="subjectFacultyEmail" type="email" placeholder="faculty@walchandsangli.ac.in">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" type="button" id="btnCancelSubjectModal">Cancel</button>
+        <button class="btn-primary" type="submit" id="btnSaveSubject">Save Subject</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Edit Lecture Modal -->
+<div class="modal-overlay" id="lectureEditModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Lecture Metadata</h3>
+      <button class="modal-close" id="btnCloseLectureEditModal">&times;</button>
+    </div>
+    <form id="lectureEditForm">
+      <input type="hidden" id="editLectureId">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="editLectureTitle">Lecture Title *</label>
+          <input class="form-control" id="editLectureTitle" type="text" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="editLectureSubject">Subject *</label>
+            <input class="form-control" id="editLectureSubject" type="text" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editLectureUnit">Unit</label>
+            <input class="form-control" id="editLectureUnit" type="text" placeholder="e.g. Unit 2">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="editLectureNumber">Lecture Number</label>
+            <input class="form-control" id="editLectureNumber" type="number" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editLectureStatus">Status</label>
+            <select class="form-control" id="editLectureStatus">
+              <option value="APPROVED">Approved</option>
+              <option value="PENDING">Pending Review</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" type="button" id="btnCancelLectureEditModal">Cancel</button>
+        <button class="btn-primary" type="submit">Update Lecture</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 3. Confirmation Dialog Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-card" style="max-width:440px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
+      <button class="modal-close" id="btnCloseConfirmModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmModalMessage" style="color:var(--text-2);font-size:14px;line-height:1.5;">Are you sure you want to proceed?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" id="btnConfirmCancel">Cancel</button>
+      <button class="btn-primary" id="btnConfirmOk" style="background:var(--red);border-color:var(--red);">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Video Player Preview Modal -->
+<div class="modal-overlay" id="videoModal">
+  <div class="modal-card" style="max-width:800px;background:#000;">
+    <div class="modal-header" style="background:#111;border-bottom-color:#222;">
+      <h3 class="modal-title" id="videoModalTitle" style="color:#FFF;">Lecture Preview</h3>
+      <button class="modal-close" id="btnCloseVideoModal" style="color:#FFF;">&times;</button>
+    </div>
+    <div style="aspect-ratio:16/9;width:100%;background:#000;display:flex;align-items:center;justify-content:center;">
+      <video id="adminVideoPlayer" controls style="width:100%;height:100%;max-height:480px;"></video>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">Action completed successfully</div>
+
+<script src="admin-dashboard.js?v=3"></script>
 </body>
 </html>

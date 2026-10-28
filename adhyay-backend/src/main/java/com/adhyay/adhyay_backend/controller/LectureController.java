@@ -116,10 +116,18 @@ public class LectureController {
             );
 
         } catch (Exception e) {
-
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(e.getMessage());
         }
+    }
+
+    @PostMapping("/{id}/view")
+    public ResponseEntity<?> recordView(@PathVariable String id) {
+        Lecture lecture = lectureService.incrementViews(id);
+        if (lecture != null) {
+            return ResponseEntity.ok(lecture);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Lecture not found");
     }
 }

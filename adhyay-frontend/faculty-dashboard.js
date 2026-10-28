@@ -455,10 +455,27 @@ async function loadMoodleCourses() {
 ========================================= */
 function setupNavSwitching() {
     const navItems = document.querySelectorAll(".sidebar-nav .nav-item");
+    const targets = {
+        upload: document.getElementById("uploadPanel"),
+        mylectures: document.getElementById("myLecturesPanel"),
+        courses: document.getElementById("moodlePanel")
+    };
+
     navItems.forEach(btn => {
         btn.addEventListener("click", () => {
             navItems.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
+
+            const page = btn.getAttribute("data-page");
+            const targetEl = targets[page];
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                targetEl.style.transition = "box-shadow 0.3s ease";
+                targetEl.style.boxShadow = "0 0 0 2px var(--green-mid)";
+                setTimeout(() => {
+                    targetEl.style.boxShadow = "";
+                }, 1200);
+            }
         });
     });
 }

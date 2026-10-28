@@ -127,4 +127,24 @@ public class LectureService {
 
         lectureRepository.deleteById(id);
     }
+
+    public Lecture incrementViews(String id) {
+        Lecture lecture = lectureRepository.findById(id).orElse(null);
+        if (lecture != null) {
+            lecture.setViews(lecture.getViews() + 1);
+            return lectureRepository.save(lecture);
+        }
+        return null;
+    }
+
+    public Lecture updateLecture(String id, String title, String subject, String unit, int lectureNumber, String status) {
+        Lecture lecture = lectureRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lecture not found"));
+        if (title != null && !title.isBlank()) lecture.setTitle(title);
+        if (subject != null && !subject.isBlank()) lecture.setSubject(subject);
+        if (unit != null && !unit.isBlank()) lecture.setUnit(unit);
+        if (lectureNumber > 0) lecture.setLectureNumber(lectureNumber);
+        if (status != null && !status.isBlank()) lecture.setStatus(status.toUpperCase());
+        return lectureRepository.save(lecture);
+    }
 }

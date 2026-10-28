@@ -17,6 +17,7 @@ let currentUser = null;
 let allLectures = [];
 let filteredLectures = [];
 let currentLecture = null;
+let currentStudentView = "home"; // "home", "continue", "saved", "history"
 let showSavedOnly = false;
 let searchText = "";
 let selectedSubject = "all";
@@ -299,10 +300,13 @@ function setText(ids, value) {
 
 function applyFilters() {
     const bookmarks = getBookmarks();
+    const progressMap = getProgress();
 
     filteredLectures = allLectures.filter(lecture => {
-        const subject = String(lecture.subject || "").trim();
+        const id = getLectureId(lecture);
+        const prog = progressMap[id] || {};
 
+        const subject = String(lecture.subject || "").trim();
         const matchesSubject =
             selectedSubject === "all" ||
             subject.toLowerCase() === selectedSubject.toLowerCase();
@@ -323,11 +327,16 @@ function applyFilters() {
             searchText.trim().toLowerCase()
         );
 
-        const matchesSaved =
-            !showSavedOnly ||
-            bookmarks.includes(getLectureId(lecture));
+        let matchesView = true;
+        if (currentStudentView === "saved") {
+            matchesView = bookmarks.includes(id);
+        } else if (currentStudentView === "continue") {
+            matchesView = Number(prog.currentTime) > 0 && !prog.completed;
+        } else if (currentStudentView === "history") {
+            matchesView = Number(prog.currentTime) > 0 || Boolean(prog.completed);
+        }
 
-        return matchesSubject && matchesSearch && matchesSaved;
+        return matchesSubject && matchesSearch && matchesView;
     });
 
     renderLectureCards();
@@ -382,9 +391,14 @@ function renderLectureCards() {
     grid.innerHTML = "";
 
     if (filteredLectures.length === 0) {
-        const message = showSavedOnly
-            ? "No saved lectures. Bookmark a lecture to save it here."
-            : "No lectures match your search or filter.";
+        let message = "No lectures match your search or filter.";
+        if (currentStudentView === "saved") {
+            message = "No saved lectures. Bookmark a lecture to save it here.";
+        } else if (currentStudentView === "continue") {
+            message = "No ongoing lectures. Click any lecture from Home to start watching!";
+        } else if (currentStudentView === "history") {
+            message = "No watch history recorded yet. Start watching lectures to track your progress.";
+        }
         grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;padding:8px 0;">${escapeHTML(message)}</p>`;
         return;
     }
@@ -600,6 +614,11 @@ function openVideo(id) {
 
     currentLecture = lecture;
     const lectureId = getLectureId(lecture);
+
+    // Record view analytics on backend
+    if (lectureId) {
+        fetch(`${API_URL}/lectures/${lectureId}/view`, { method: "POST" }).catch(() => {});
+    }
 
     // Title elements
     const titleElement = document.getElementById("playerTitle");
@@ -1029,6 +1048,51 @@ function setupEventListeners() {
     if (logoutButton) {
         logoutButton.addEventListener("click", logout);
     }
+
+    // Sidebar Navigation Tabs (Home, Continue watching, Saved lectures, Watch history)
+    const navButtons = {
+        home: document.getElementById("navHome"),
+        continue: document.getElementById("navContinue"),
+        saved: document.getElementById("navSaved"),
+        history: document.getElementById("navHistory")
+    };
+
+    function switchStudentTab(viewKey) {
+        currentStudentView = viewKey;
+
+        Object.entries(navButtons).forEach(([key, btn]) => {
+            if (btn) btn.classList.toggle("active", key === viewKey);
+        });
+
+        const titleEl = document.getElementById("lecturesSectionTitle");
+        const welcomeTitle = document.getElementById("welcomeTitle");
+
+        if (viewKey === "home") {
+            if (titleEl) titleEl.textContent = "All lectures";
+            if (welcomeTitle) welcomeTitle.textContent = "Good to see you.";
+        } else if (viewKey === "continue") {
+            if (titleEl) titleEl.textContent = "Continue watching";
+            if (welcomeTitle) welcomeTitle.textContent = "Continue your progress";
+        } else if (viewKey === "saved") {
+            if (titleEl) titleEl.textContent = "Saved lectures";
+            if (welcomeTitle) welcomeTitle.textContent = "Your saved lectures";
+        } else if (viewKey === "history") {
+            if (titleEl) titleEl.textContent = "Watch history";
+            if (welcomeTitle) welcomeTitle.textContent = "Your watch history";
+        }
+
+        applyFilters();
+    }
+
+    if (navButtons.home) navButtons.home.addEventListener("click", () => switchStudentTab("home"));
+    if (navButtons.continue) navButtons.continue.addEventListener("click", () => switchStudentTab("continue"));
+    if (navButtons.saved) navButtons.saved.addEventListener("click", () => switchStudentTab("saved"));
+    if (navButtons.history) navButtons.history.addEventListener("click", () => switchStudentTab("history"));
+
+    const backToAllBtn = document.getElementById("backToAllBtn");
+    if (backToAllBtn) backToAllBtn.addEventListener("click", () => switchStudentTab("home"));
+    const backToAllFromHist = document.getElementById("backToAllFromHistoryBtn");
+    if (backToAllFromHist) backToAllFromHist.addEventListener("click", () => switchStudentTab("home"));
 
     // Main document click delegation
     document.addEventListener("click", event => {
