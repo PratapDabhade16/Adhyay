@@ -129,8 +129,12 @@ function initializeUser() {
 }
 
 function logout() {
-    localStorage.removeItem(AUTH_KEY);
-    window.location.href = "login.html";
+    if (typeof logoutUser === "function") {
+        logoutUser();
+    } else {
+        localStorage.removeItem(AUTH_KEY);
+        window.location.href = "login.html";
+    }
 }
 
 /* ---------- Messages ---------- */
@@ -486,6 +490,36 @@ function renderContinueWatching() {
 
     if (!grid) return;
 
+    try {
+        const res = await fetch(`${API_URL}/progress/continue-watching`);
+        if (res.ok) {
+            const list = await res.json();
+            if (Array.isArray(list) && list.length > 0) {
+                const progressMap = getProgress();
+                list.forEach(p => {
+                    progressMap[p.lectureId] = {
+                        currentTime: p.positionSeconds,
+                        duration: p.durationSeconds,
+                        completed: p.completed
+                    };
+                });
+                writeJSON(PROGRESS_KEY, progressMap);
+
+                const continueLects = list.map(p => allLectures.find(l => getLectureId(l) === p.lectureId)).filter(Boolean);
+                if (continueLects.length > 0) {
+                    if (section) section.hidden = false;
+                    grid.innerHTML = "";
+                    continueLects.slice(0, 3).forEach(lecture => {
+                        grid.appendChild(createLectureCard(lecture));
+                    });
+                    return;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Backend continue watching sync error:", e);
+    }
+
     const progress = getProgress();
 
     const continueLectures = allLectures.filter(lecture => {
@@ -516,6 +550,47 @@ function renderContinueWatching() {
     continueLectures.slice(0, 3).forEach(lecture => {
         grid.appendChild(createLectureCard(lecture));
     });
+}
+
+/* ---------- Subject Progress (Phase 3) ---------- */
+
+async function loadSubjectProgressStats() {
+    const grid = document.getElementById("subjectProgressGrid");
+    if (!grid) return;
+
+    try {
+        const res = await fetch(`${API_URL}/progress/subject-stats`);
+        if (!res.ok) return;
+        const stats = await res.json();
+        const entries = Object.entries(stats);
+
+        if (entries.length === 0) {
+            grid.innerHTML = `<p style="color:var(--muted);font-size:13.5px;grid-column:1/-1;">No enrolled subject progress recorded yet. Watch 90% of a lecture to mark it complete!</p>`;
+            return;
+        }
+
+        grid.innerHTML = entries.map(([subject, data]) => {
+            const percent = Math.min(100, Math.round(data.progressPercent || 0));
+            const completed = data.completedLectures || 0;
+            const total = data.totalLectures || 0;
+            return `
+                <div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-weight:700;font-size:14.5px;color:#0F172A;">${escapeHTML(subject)}</span>
+                        <span style="font-weight:700;font-size:13px;color:#0D3E36;">${percent}%</span>
+                    </div>
+                    <div style="background:#E2E8F0;height:7px;border-radius:99px;overflow:hidden;margin-bottom:8px;">
+                        <div style="background:#15803D;width:${percent}%;height:100%;border-radius:99px;transition:width 0.3s ease;"></div>
+                    </div>
+                    <div style="font-size:12px;color:#64748B;">
+                        ${completed} of ${total} lectures completed (≥90% watched)
+                    </div>
+                </div>
+            `;
+        }).join("");
+    } catch (err) {
+        console.warn("Could not load subject progress stats:", err);
+    }
 }
 
 /* ---------- Bookmarks ---------- */
@@ -693,14 +768,46 @@ function openVideo(id) {
             savedProgress.currentTime < player.duration - 2
         ) {
             player.currentTime = savedProgress.currentTime;
+            showResumeToast(savedProgress.currentTime);
         }
         player.removeEventListener("loadedmetadata", restorePosition);
     };
 
     player.addEventListener("loadedmetadata", restorePosition);
+
+    // Fetch backend synced progress and auto-resume
+    (async () => {
+        try {
+            const progRes = await fetch(`${API_URL}/progress/${encodeURIComponent(lectureId)}`);
+            if (progRes.ok) {
+                const bp = await progRes.json();
+                if (bp && bp.positionSeconds > 3 && !bp.completed) {
+                    savedProgress.currentTime = bp.positionSeconds;
+                    if (player.duration > 0 && bp.positionSeconds < player.duration - 2) {
+                        player.currentTime = bp.positionSeconds;
+                        showResumeToast(bp.positionSeconds);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Backend progress check:", e);
+        }
+    })();
+
     player.play().catch(error => {
         console.warn("Autoplay was prevented by browser:", error);
     });
+}
+
+function showResumeToast(seconds) {
+    const toast = document.getElementById("resumeToast");
+    const msg = document.getElementById("resumeToastMsg");
+    if (!toast || !msg) return;
+    msg.textContent = `Auto-resumed from ${formatAiTimestamp(seconds)}`;
+    toast.style.display = "flex";
+    setTimeout(() => {
+        toast.style.display = "none";
+    }, 4500);
 }
 
 function closeVideo() {
@@ -723,27 +830,87 @@ function closeVideo() {
 
     updateStatistics();
     renderContinueWatching();
+    loadSubjectProgressStats();
     applyFilters();
+}
+
+function formatTextWithTimestamps(rawText) {
+    if (!rawText) return "";
+    const safe = escapeHTML(rawText);
+    // Matches patterns like [02:30], [⏱ 02:30], ⏱ 02:30, 02:30, 1:23:45
+    return safe.replace(/(?:\[?\s*⏱?\s*)?(\b\d{1,2}:\d{2}(?::\d{2})?\b)(?:\s*\])?/g, (match, ts) => {
+        return `<button type="button" class="timestamp-chip" onclick="seekLectureTimestamp('${ts}')" title="Jump to ${ts}">⏱ ${ts}</button>`;
+    });
+}
+
+window.tagCurrentVideoTimestamp = function() {
+    const player = document.getElementById("lecturePlayer");
+    const input = document.getElementById("commentInput");
+    if (!player || !input) return;
+    const ts = formatAiTimestamp(player.currentTime || 0);
+    const tag = `[⏱ ${ts}] `;
+    if (!input.value.includes(tag)) {
+        input.value = tag + input.value;
+    }
+    input.focus();
+    const submitBtn = document.getElementById("submitCommentBtn");
+    if (submitBtn) submitBtn.disabled = false;
+};
+
+let lastBackendProgressSync = 0;
+function syncProgressToBackend(lectureId, cur, dur) {
+    const now = Date.now();
+    if (now - lastBackendProgressSync < 10000) return;
+    lastBackendProgressSync = now;
+
+    fetch(`${API_URL}/progress`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            lectureId: lectureId,
+            positionSeconds: cur,
+            durationSeconds: dur
+        })
+    }).catch(err => console.warn("Background progress sync error:", err));
 }
 
 function savePlaybackProgress() {
     const player = document.getElementById("lecturePlayer");
     if (!currentLecture || !player) return;
 
+    // Dynamically update UI controls
+    const cur = player.currentTime || 0;
+    const dur = Number.isFinite(player.duration) ? player.duration : 0;
+    const timeDisplay = document.getElementById("videoTimeDisplay");
+    if (timeDisplay) {
+        timeDisplay.textContent = `${formatAiTimestamp(cur)} / ${formatAiTimestamp(dur)}`;
+    }
+    const timelineFill = document.getElementById("timelineFill");
+    if (timelineFill && dur > 0) {
+        timelineFill.style.width = `${Math.min(100, (cur / dur) * 100)}%`;
+    }
+    const currentTimeTagDisplay = document.getElementById("currentTimeTagDisplay");
+    if (currentTimeTagDisplay) {
+        currentTimeTagDisplay.textContent = formatAiTimestamp(cur);
+    }
+
     const id = getLectureId(currentLecture);
-    if (!id || !Number.isFinite(player.currentTime)) return;
+    if (!id || !Number.isFinite(cur)) return;
 
     const progress = getProgress();
-    const completed = player.duration > 0 &&
-        player.currentTime >= player.duration - 3;
+    // 90% watched marks lecture as completed
+    const completed = dur > 0 && cur >= 0.90 * dur;
 
     progress[id] = {
-        currentTime: completed ? 0 : player.currentTime,
-        duration: Number.isFinite(player.duration) ? player.duration : 0,
+        currentTime: completed ? 0 : cur,
+        duration: dur,
         completed
     };
 
     writeJSON(PROGRESS_KEY, progress);
+
+    // Sync progress to backend every 10 seconds
+    syncProgressToBackend(id, cur, dur);
 }
 
 /* ---------- Theater Mode & Fullscreen ---------- */
@@ -844,125 +1011,169 @@ function timeAgo(dateOrTimestamp) {
     return new Date(timestamp).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
 }
 
-function renderComments(lectureId) {
+async function renderComments(lectureId) {
     const list = document.getElementById("commentsList");
-    const countBadge = document.getElementById("commentsCountBadge");
+    const countBadge = document.getElementById("doubtsCountBadge") || document.getElementById("commentsCountBadge");
     if (!list) return;
 
-    const comments = getLectureComments(lectureId);
-    if (countBadge) countBadge.textContent = comments.length;
-
-    if (comments.length === 0) {
-        list.innerHTML = `
-            <div class="comments-empty-state">
-                <span>💬</span>
-                <strong>No comments or doubts yet</strong>
-                <p>Be the first to ask a question or leave feedback on this lecture!</p>
-            </div>
-        `;
+    if (!lectureId) {
+        list.innerHTML = `<p style="color:var(--muted);font-size:13px;padding:8px 0;">No lecture selected.</p>`;
         return;
     }
 
-    const currentUserName = (currentUser && (currentUser.name || currentUser.username)) || "Student";
+    try {
+        const res = await fetch(`${API_URL}/lectures/${encodeURIComponent(lectureId)}/doubts`);
+        if (!res.ok) throw new Error("Failed to load doubts");
+        const doubts = await res.json();
 
-    list.innerHTML = comments
-        .slice()
-        .reverse()
-        .map(comment => {
-            const authorInitial = (comment.author || "S").charAt(0).toUpperCase();
-            const isOwn = comment.author === currentUserName;
-            const isFaculty = comment.role === "FACULTY" || comment.role === "Faculty";
-            return `
-                <div class="comment-item" data-comment-id="${escapeHTML(comment.id)}">
-                    <div class="comment-item-avatar">${escapeHTML(authorInitial)}</div>
-                    <div class="comment-item-content">
-                        <div class="comment-meta-bar">
-                            <span class="comment-author-name">${escapeHTML(comment.author || "Student")}</span>
-                            <span class="comment-role-chip ${isFaculty ? 'faculty' : ''}">
-                                ${escapeHTML(comment.role || "Student")}
-                            </span>
-                            <span class="comment-time-ago">${escapeHTML(timeAgo(comment.timestamp))}</span>
-                        </div>
-                        <p class="comment-text-body">${escapeHTML(comment.text)}</p>
-                        <div class="comment-actions-bar">
-                            <button
-                                class="comment-action-btn ${comment.liked ? 'liked' : ''}"
-                                type="button"
-                                data-comment-action="like"
-                                data-comment-id="${escapeHTML(comment.id)}"
-                            >
-                                <span>👍</span>
-                                <span>${comment.likes || 0}</span>
-                            </button>
-                            ${
-                                isOwn
-                                    ? `
-                                    <button
-                                        class="comment-action-btn delete"
-                                        type="button"
-                                        data-comment-action="delete"
-                                        data-comment-id="${escapeHTML(comment.id)}"
-                                    >
-                                        <span>🗑 Delete</span>
-                                    </button>
-                                `
-                                    : ""
-                            }
-                        </div>
-                    </div>
+        if (countBadge) countBadge.textContent = doubts.length;
+
+        if (!Array.isArray(doubts) || doubts.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center;padding:32px 20px;background:#fff;border:1px dashed #CBD5E1;border-radius:12px;color:#64748B;">
+                    <div style="font-size:32px;margin-bottom:8px;">💡</div>
+                    <strong style="color:#0F172A;font-size:15px;display:block;margin-bottom:4px;">No doubts asked yet</strong>
+                    <span style="font-size:13px;">Have a question about what the professor covered? Ask above and get an official reply!</span>
                 </div>
             `;
-        })
-        .join("");
+            return;
+        }
+
+        const currentUserId = (currentUser && (currentUser.id || currentUser._id)) || "";
+        const currentUserEmail = (currentUser && currentUser.email) || "";
+
+        list.innerHTML = doubts.map(doubt => {
+            const authorInitial = (doubt.studentName || "S").charAt(0).toUpperCase();
+            const isOwn = (currentUserId && doubt.studentId === currentUserId) ||
+                          (currentUserEmail && doubt.studentEmail === currentUserEmail);
+            const isAnswered = Boolean(doubt.facultyReply) || doubt.status === "RESOLVED" || doubt.status === "ANSWERED";
+
+            let facultyReplyHtml = "";
+            if (doubt.facultyReply) {
+                facultyReplyHtml = `
+                    <div class="faculty-reply-box">
+                        <div class="faculty-reply-header">
+                            <div class="faculty-badge-row">
+                                <span class="faculty-verified-tag">🎓 Faculty Reply</span>
+                                <span class="faculty-replier-name">${escapeHTML(doubt.repliedBy || "Course Faculty")}</span>
+                            </div>
+                            <span class="faculty-reply-time">${escapeHTML(timeAgo(doubt.repliedAt))}</span>
+                        </div>
+                        <p class="faculty-reply-text">${formatTextWithTimestamps(doubt.facultyReply)}</p>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="doubt-item-card" data-doubt-id="${escapeHTML(doubt.id)}">
+                    <div class="doubt-card-header">
+                        <div class="doubt-author-group">
+                            <div class="doubt-author-avatar">${escapeHTML(authorInitial)}</div>
+                            <div class="doubt-author-meta">
+                                <span class="doubt-author-name">${escapeHTML(doubt.studentName || "Student")}</span>
+                                <span class="doubt-time-ago">${escapeHTML(timeAgo(doubt.createdAt))}</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="doubt-status-pill ${isAnswered ? 'answered' : 'open'}">
+                                ${isAnswered ? '✓ Answered' : '⏳ Awaiting Reply'}
+                            </span>
+                            ${isOwn ? `
+                                <button type="button" class="doubt-delete-btn" title="Delete your doubt" onclick="deleteDoubt('${doubt.id}', '${lectureId}')">
+                                    🗑 Delete
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <p class="doubt-question-body">${formatTextWithTimestamps(doubt.question)}</p>
+                    ${facultyReplyHtml}
+                </div>
+            `;
+        }).join("");
+
+    } catch (err) {
+        console.warn("Could not load doubts:", err);
+        list.innerHTML = `<p style="color:#B91C1C;font-size:13px;padding:12px;">Could not load doubts from server.</p>`;
+    }
 }
+
+window.handlePostDoubt = async function() {
+    if (!currentLecture) return;
+    const lectureId = getLectureId(currentLecture);
+    const input = document.getElementById("commentInput");
+    const submitBtn = document.getElementById("submitCommentBtn");
+    const text = (input?.value || "").trim();
+
+    if (!text) {
+        alert("Please enter your question before posting.");
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Posting...";
+    }
+
+    try {
+        const user = currentUser || readJSON(AUTH_KEY, {});
+        const studentName = user.name || user.username || "Student";
+        const studentEmail = user.email || "student@walchandsangli.ac.in";
+        const studentId = user.id || user._id || "";
+
+        const res = await fetch(`${API_URL}/lectures/${encodeURIComponent(lectureId)}/doubts`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-User-Name": studentName,
+                "X-User-Email": studentEmail,
+                "X-User-Id": studentId
+            },
+            body: JSON.stringify({
+                question: text,
+                studentId: studentId,
+                studentName: studentName,
+                studentEmail: studentEmail
+            })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            alert(errData.message || "Failed to post doubt.");
+            return;
+        }
+
+        if (input) input.value = "";
+        await renderComments(lectureId);
+
+    } catch (err) {
+        console.error("Error posting doubt:", err);
+        alert("Network error connecting to backend server.");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "<span>❓ Ask Faculty</span>";
+        }
+    }
+};
+
+window.deleteDoubt = async function(doubtId, lectureId) {
+    if (!confirm("Are you sure you want to delete this doubt?")) return;
+    try {
+        const res = await fetch(`${API_URL}/doubts/${encodeURIComponent(doubtId)}`, {
+            method: "DELETE"
+        });
+        if (res.ok) {
+            await renderComments(lectureId);
+        } else {
+            alert("Could not delete doubt.");
+        }
+    } catch (err) {
+        console.error("Delete doubt error:", err);
+    }
+};
 
 function addComment(lectureId, text) {
-    if (!text || !text.trim()) return;
-    const store = readJSON(COMMENTS_KEY, {});
-    if (!store[lectureId]) store[lectureId] = [];
-
-    const currentUserName = (currentUser && (currentUser.name || currentUser.username)) || "Student";
-    const currentUserRole = (currentUser && currentUser.role) || "Student";
-
-    const newComment = {
-        id: "c_" + Date.now(),
-        author: currentUserName,
-        role: currentUserRole,
-        text: text.trim(),
-        timestamp: Date.now(),
-        likes: 0,
-        liked: false
-    };
-
-    store[lectureId].push(newComment);
-    writeJSON(COMMENTS_KEY, store);
-    renderComments(lectureId);
-}
-
-function toggleCommentLike(lectureId, commentId) {
-    const store = readJSON(COMMENTS_KEY, {});
-    const list = store[lectureId];
-    if (!list) return;
-
-    const comment = list.find(c => c.id === commentId);
-    if (!comment) return;
-
-    comment.liked = !comment.liked;
-    comment.likes = (comment.likes || 0) + (comment.liked ? 1 : -1);
-    if (comment.likes < 0) comment.likes = 0;
-
-    writeJSON(COMMENTS_KEY, store);
-    renderComments(lectureId);
-}
-
-function deleteComment(lectureId, commentId) {
-    const store = readJSON(COMMENTS_KEY, {});
-    const list = store[lectureId];
-    if (!list) return;
-
-    store[lectureId] = list.filter(c => c.id !== commentId);
-    writeJSON(COMMENTS_KEY, store);
-    renderComments(lectureId);
+    handlePostDoubt();
 }
 
 /* ---------- Course Playlist (YouTube-Style Sidebar) ---------- */
@@ -1049,12 +1260,14 @@ function setupEventListeners() {
         logoutButton.addEventListener("click", logout);
     }
 
-    // Sidebar Navigation Tabs (Home, Continue watching, Saved lectures, Watch history)
+    // Sidebar Navigation Tabs (Home, Continue watching, Saved lectures, Watch history, Materials, Announcements)
     const navButtons = {
         home: document.getElementById("navHome"),
         continue: document.getElementById("navContinue"),
         saved: document.getElementById("navSaved"),
-        history: document.getElementById("navHistory")
+        history: document.getElementById("navHistory"),
+        materials: document.getElementById("navMaterials"),
+        announcements: document.getElementById("navAnnouncements")
     };
 
     function switchStudentTab(viewKey) {
@@ -1066,33 +1279,76 @@ function setupEventListeners() {
 
         const titleEl = document.getElementById("lecturesSectionTitle");
         const welcomeTitle = document.getElementById("welcomeTitle");
+        const continueSec = document.getElementById("continueSection");
+        const subjProgSec = document.getElementById("subjectProgressSection");
+        const subjectsSec = document.getElementById("subjectsSection");
+        const materialsSec = document.getElementById("materialsSection");
+        const announcementsSec = document.getElementById("announcementsSection");
+        const bookmarksSec = document.getElementById("bookmarksSection");
+        const historySec = document.getElementById("historySection");
+
+        if (materialsSec) materialsSec.hidden = (viewKey !== "materials");
+        if (announcementsSec) announcementsSec.hidden = (viewKey !== "announcements");
+        if (bookmarksSec) bookmarksSec.hidden = true;
+        if (historySec) historySec.hidden = true;
 
         if (viewKey === "home") {
+            if (subjProgSec) subjProgSec.hidden = false;
+            if (subjectsSec) subjectsSec.hidden = false;
             if (titleEl) titleEl.textContent = "All lectures";
             if (welcomeTitle) welcomeTitle.textContent = "Good to see you.";
+            renderContinueWatching();
+            loadSubjectProgressStats();
+            applyFilters();
         } else if (viewKey === "continue") {
+            if (continueSec) continueSec.hidden = true;
+            if (subjProgSec) subjProgSec.hidden = true;
+            if (subjectsSec) subjectsSec.hidden = false;
             if (titleEl) titleEl.textContent = "Continue watching";
             if (welcomeTitle) welcomeTitle.textContent = "Continue your progress";
+            applyFilters();
         } else if (viewKey === "saved") {
+            if (continueSec) continueSec.hidden = true;
+            if (subjProgSec) subjProgSec.hidden = true;
+            if (subjectsSec) subjectsSec.hidden = false;
             if (titleEl) titleEl.textContent = "Saved lectures";
             if (welcomeTitle) welcomeTitle.textContent = "Your saved lectures";
+            applyFilters();
         } else if (viewKey === "history") {
+            if (continueSec) continueSec.hidden = true;
+            if (subjProgSec) subjProgSec.hidden = true;
+            if (subjectsSec) subjectsSec.hidden = false;
             if (titleEl) titleEl.textContent = "Watch history";
             if (welcomeTitle) welcomeTitle.textContent = "Your watch history";
+            applyFilters();
+        } else if (viewKey === "materials") {
+            if (continueSec) continueSec.hidden = true;
+            if (subjProgSec) subjProgSec.hidden = true;
+            if (subjectsSec) subjectsSec.hidden = true;
+            loadStudentMaterials();
+        } else if (viewKey === "announcements") {
+            if (continueSec) continueSec.hidden = true;
+            if (subjProgSec) subjProgSec.hidden = true;
+            if (subjectsSec) subjectsSec.hidden = true;
+            loadStudentAnnouncements();
         }
-
-        applyFilters();
     }
 
     if (navButtons.home) navButtons.home.addEventListener("click", () => switchStudentTab("home"));
     if (navButtons.continue) navButtons.continue.addEventListener("click", () => switchStudentTab("continue"));
     if (navButtons.saved) navButtons.saved.addEventListener("click", () => switchStudentTab("saved"));
     if (navButtons.history) navButtons.history.addEventListener("click", () => switchStudentTab("history"));
+    if (navButtons.materials) navButtons.materials.addEventListener("click", () => switchStudentTab("materials"));
+    if (navButtons.announcements) navButtons.announcements.addEventListener("click", () => switchStudentTab("announcements"));
 
     const backToAllBtn = document.getElementById("backToAllBtn");
     if (backToAllBtn) backToAllBtn.addEventListener("click", () => switchStudentTab("home"));
     const backToAllFromHist = document.getElementById("backToAllFromHistoryBtn");
     if (backToAllFromHist) backToAllFromHist.addEventListener("click", () => switchStudentTab("home"));
+    const backFromMat = document.getElementById("backToAllFromMaterialsBtn");
+    if (backFromMat) backFromMat.addEventListener("click", () => switchStudentTab("home"));
+    const backFromAnn = document.getElementById("backToAllFromAnnouncementsBtn");
+    if (backFromAnn) backFromAnn.addEventListener("click", () => switchStudentTab("home"));
 
     // Main document click delegation
     document.addEventListener("click", event => {
@@ -1222,9 +1478,27 @@ function setupEventListeners() {
 
     // Video Player events
     const player = document.getElementById("lecturePlayer");
+    const centerPlayBtn = document.getElementById("centerPlayBtn");
     if (player) {
         player.addEventListener("timeupdate", savePlaybackProgress);
-        player.addEventListener("pause", savePlaybackProgress);
+        player.addEventListener("pause", () => {
+            savePlaybackProgress();
+            if (centerPlayBtn) centerPlayBtn.style.opacity = "1";
+        });
+        player.addEventListener("play", () => {
+            if (centerPlayBtn) centerPlayBtn.style.opacity = "0";
+        });
+
+        const timeline = document.querySelector(".video-timeline");
+        if (timeline) {
+            timeline.addEventListener("click", e => {
+                if (!Number.isFinite(player.duration) || player.duration <= 0) return;
+                const rect = timeline.getBoundingClientRect();
+                const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                player.currentTime = pos * player.duration;
+                savePlaybackProgress();
+            });
+        }
 
         player.addEventListener("ended", () => {
             if (!currentLecture) return;
@@ -1240,6 +1514,15 @@ function setupEventListeners() {
             renderContinueWatching();
             renderWatchPlaylist();
         });
+    }
+
+    const theaterBtn = document.getElementById("theaterToggleBtn");
+    if (theaterBtn) {
+        theaterBtn.addEventListener("click", toggleTheaterMode);
+    }
+    const fullscreenBtn = document.getElementById("playerFullscreenBtn");
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener("click", toggleFullScreen);
     }
 
     // Keyboard shortcuts: F (fullscreen), T (theater), Space (play/pause), Esc (close)
@@ -1272,6 +1555,124 @@ function setupEventListeners() {
     window.addEventListener("beforeunload", savePlaybackProgress);
 }
 
+/* ---------- Student Materials & Assignments (Phase 3) ---------- */
+
+async function loadStudentMaterials() {
+    const grid = document.getElementById("studentMaterialsGrid");
+    if (!grid) return;
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;padding:24px 0;">Loading course materials & assignments...</p>`;
+
+    try {
+        const res = await fetch(`${API_URL}/materials`);
+        if (!res.ok) throw new Error("Could not load materials");
+        const list = await res.json();
+
+        if (!Array.isArray(list) || list.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;padding:40px 20px;background:#fff;border:1px dashed #CBD5E1;border-radius:12px;color:#64748B;">
+                    <div style="font-size:36px;margin-bottom:8px;">📁</div>
+                    <strong style="color:#0F172A;font-size:16px;display:block;margin-bottom:4px;">No materials or assignments uploaded yet</strong>
+                    <span>Check back when your faculty uploads lecture notes, slides, or assignments.</span>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = list.map(item => {
+            const isAssn = Boolean(item.isAssignment);
+            const badgeBg = isAssn ? "#FEF3C7" : "#E0F2FE";
+            const badgeColor = isAssn ? "#92400E" : "#0369A1";
+            const badgeText = isAssn ? "📝 Assignment" : "📚 Lecture Notes";
+
+            let deadlineHtml = "";
+            if (isAssn && item.deadline) {
+                const dueTime = new Date(item.deadline).getTime();
+                const now = Date.now();
+                const diffHours = (dueTime - now) / (1000 * 60 * 60);
+                const isUrgent = diffHours > 0 && diffHours <= 24;
+                const isPast = diffHours <= 0;
+
+                const statusColor = isPast ? "#DC2626" : (isUrgent ? "#D97706" : "#15803D");
+                const statusText = isPast ? "⚠️ Past Deadline" : (isUrgent ? `⏰ Due Soon (${Math.round(diffHours)}h left)` : `Due: ${new Date(item.deadline).toLocaleString()}`);
+
+                deadlineHtml = `
+                    <div style="margin-top:10px;padding:8px 12px;background:#F8FAFC;border:1px solid #E2E8F0;border-left:3px solid ${statusColor};border-radius:6px;font-size:12.5px;font-weight:600;color:${statusColor};">
+                        ${statusText}
+                    </div>
+                `;
+            }
+
+            return `
+                <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:${badgeBg};color:${badgeColor};">${badgeText}</span>
+                            <span style="font-size:12px;color:#64748B;">${escapeHTML(item.subjectName || "General")}</span>
+                        </div>
+                        <h3 style="font-size:16px;font-weight:700;color:#0F172A;margin:0 0 6px 0;">${escapeHTML(item.title)}</h3>
+                        <p style="font-size:13px;color:#475569;margin:0 0 14px 0;line-height:1.45;">${escapeHTML(item.description || "No description provided.")}</p>
+                        ${deadlineHtml}
+                    </div>
+                    <div style="margin-top:18px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #F1F5F9;padding-top:14px;">
+                        <span style="font-size:11.5px;color:#94A3B8;">By ${escapeHTML(item.uploadedByName || "Faculty")}</span>
+                        <a href="${escapeHTML(item.fileUrl)}" target="_blank" download class="btn-primary" style="text-decoration:none;font-size:12.5px;padding:7px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">
+                            <span>⬇️</span> Download ${escapeHTML(item.fileType || "File")}
+                        </a>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    } catch (err) {
+        grid.innerHTML = `<p style="color:#EF4444;grid-column:1/-1;">Error loading materials: ${escapeHTML(err.message)}</p>`;
+    }
+}
+
+/* ---------- Student Announcements (Phase 3) ---------- */
+
+async function loadStudentAnnouncements() {
+    const listEl = document.getElementById("studentAnnouncementsList");
+    if (!listEl) return;
+    listEl.innerHTML = `<p style="color:var(--muted);text-align:center;padding:24px;">Loading announcements...</p>`;
+
+    try {
+        const res = await fetch(`${API_URL}/announcements`);
+        if (!res.ok) throw new Error("Could not load announcements");
+        const list = await res.json();
+
+        if (!Array.isArray(list) || list.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;background:#fff;border:1px dashed #CBD5E1;border-radius:12px;color:#64748B;">
+                    <div style="font-size:36px;margin-bottom:8px;">📢</div>
+                    <strong style="color:#0F172A;font-size:16px;display:block;margin-bottom:4px;">No announcements posted yet</strong>
+                    <span>Important departmental and subject notices will appear here.</span>
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = list.map(ann => {
+            return `
+                <div style="background:#fff;border:1px solid #E2E8F0;border-left:4px solid #0D3E36;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span style="font-weight:700;font-size:16px;color:#0F172A;">${escapeHTML(ann.title)}</span>
+                            ${ann.subjectName ? `<span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:#E0F2FE;color:#0369A1;">${escapeHTML(ann.subjectName)}</span>` : ""}
+                            ${ann.targetBranch ? `<span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:#FEF3C7;color:#92400E;">${escapeHTML(ann.targetBranch)}</span>` : ""}
+                        </div>
+                        <span style="font-size:12px;color:#94A3B8;">${escapeHTML(timeAgo(ann.createdAt))}</span>
+                    </div>
+                    <p style="font-size:14px;color:#334155;line-height:1.6;margin:0 0 14px 0;white-space:pre-wrap;">${escapeHTML(ann.content)}</p>
+                    <div style="font-size:12px;color:#64748B;display:flex;align-items:center;gap:6px;">
+                        <span>👤 Posted by <strong>${escapeHTML(ann.postedByName || "Faculty / Admin")}</strong></span>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    } catch (err) {
+        listEl.innerHTML = `<p style="color:#EF4444;text-align:center;">Error loading announcements: ${escapeHTML(err.message)}</p>`;
+    }
+}
+
 /* ---------- Initialize Dashboard ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1279,5 +1680,301 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setupEventListeners();
     fetchLectures();
+    loadSubjectProgressStats();
 });
 
+
+
+/* ========================================================
+   ADHYAY AI LECTURE ASSISTANT (Groq Whisper + LLaMA 3.3)
+   ======================================================== */
+
+let aiPollingInterval = null;
+let isAiAsking = false;
+
+window.switchSidebarTab = function(tab) {
+    const tabBtnAi = document.getElementById("tabBtnAi");
+    const tabBtnPlaylist = document.getElementById("tabBtnPlaylist");
+    const tabContentAi = document.getElementById("tabContentAi");
+    const tabContentPlaylist = document.getElementById("tabContentPlaylist");
+
+    if (tab === "ai") {
+        tabBtnAi?.classList.add("active");
+        tabBtnPlaylist?.classList.remove("active");
+        if (tabContentAi) tabContentAi.style.display = "flex";
+        if (tabContentPlaylist) tabContentPlaylist.style.display = "none";
+    } else {
+        tabBtnAi?.classList.remove("active");
+        tabBtnPlaylist?.classList.add("active");
+        if (tabContentAi) tabContentAi.style.display = "none";
+        if (tabContentPlaylist) tabContentPlaylist.style.display = "flex";
+    }
+};
+
+window.seekLecturePlayer = function(seconds) {
+    const player = document.getElementById("lecturePlayer");
+    if (!player) return;
+    const s = Math.max(0, Number(seconds) || 0);
+    player.currentTime = s;
+    player.play().catch(() => {});
+};
+
+window.seekLectureTimestamp = function(tsStr) {
+    if (!tsStr) return;
+    const clean = String(tsStr).replace(/[\[\]\(\)]/g, "").trim();
+    const parts = clean.split(":").map(Number);
+    let totalSeconds = 0;
+    if (parts.length === 2) {
+        totalSeconds = parts[0] * 60 + parts[1];
+    } else if (parts.length === 3) {
+        totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    seekLecturePlayer(totalSeconds);
+};
+
+function formatAiTimestamp(seconds) {
+    const s = Math.round(Number(seconds) || 0);
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return `${String(m).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+}
+
+async function initLectureAiAssistant(lecture) {
+    if (aiPollingInterval) {
+        clearInterval(aiPollingInterval);
+        aiPollingInterval = null;
+    }
+
+    const badge = document.getElementById("aiTranscriptStatusBadge");
+    const banner = document.getElementById("aiDisabledBanner");
+    const bannerMsg = document.getElementById("aiDisabledMessage");
+    const bannerIcon = document.getElementById("aiDisabledIcon");
+    const chatBody = document.getElementById("aiChatBody");
+    const input = document.getElementById("aiQuestionInput");
+    const sendBtn = document.getElementById("aiSendBtn");
+
+    if (!lecture) return;
+    const lectureId = getLectureId(lecture);
+
+    // Initial state check
+    await checkTranscriptStatus(lectureId);
+
+    async function checkTranscriptStatus(id) {
+        try {
+            const res = await fetch(`${API_URL}/lectures/${encodeURIComponent(id)}/transcript-status`);
+            if (!res.ok) throw new Error("Status check failed");
+            const data = await res.json();
+            const status = (data.status || "NONE").toUpperCase();
+
+            if (status === "DONE") {
+                if (badge) {
+                    badge.className = "ai-status-badge done";
+                    badge.textContent = "✓ AI Ready";
+                }
+                if (banner) banner.style.display = "none";
+                if (chatBody) chatBody.style.display = "flex";
+                if (input) input.disabled = false;
+                if (sendBtn) sendBtn.disabled = false;
+
+                if (aiPollingInterval) {
+                    clearInterval(aiPollingInterval);
+                    aiPollingInterval = null;
+                }
+            } else if (status === "PENDING") {
+                if (badge) {
+                    badge.className = "ai-status-badge pending";
+                    badge.textContent = "⏳ Transcribing...";
+                }
+                if (banner) {
+                    banner.style.display = "block";
+                    if (bannerIcon) bannerIcon.textContent = "⏳";
+                    if (bannerMsg) bannerMsg.textContent = "AI is currently transcribing this lecture and generating timestamps. Checking status every 10s...";
+                }
+                if (chatBody) chatBody.style.display = "none";
+                if (input) input.disabled = true;
+                if (sendBtn) sendBtn.disabled = true;
+
+                if (!aiPollingInterval) {
+                    aiPollingInterval = setInterval(() => checkTranscriptStatus(id), 10000);
+                }
+            } else if (status === "FAILED") {
+                if (badge) {
+                    badge.className = "ai-status-badge disabled";
+                    badge.textContent = "✗ Failed";
+                }
+                if (banner) {
+                    banner.style.display = "block";
+                    if (bannerIcon) bannerIcon.textContent = "⚠️";
+                    const err = data.error ? ` Reason: ${data.error}` : "";
+                    if (bannerMsg) bannerMsg.textContent = "Transcription could not be completed for this lecture." + err;
+                }
+                if (chatBody) chatBody.style.display = "none";
+                if (input) input.disabled = true;
+                if (sendBtn) sendBtn.disabled = true;
+
+                if (aiPollingInterval) {
+                    clearInterval(aiPollingInterval);
+                    aiPollingInterval = null;
+                }
+            } else {
+                if (badge) {
+                    badge.className = "ai-status-badge";
+                    badge.textContent = "Not Ready";
+                }
+                if (banner) {
+                    banner.style.display = "block";
+                    if (bannerIcon) bannerIcon.textContent = "ℹ️";
+                    if (bannerMsg) bannerMsg.textContent = "AI Assistant transcript has not been generated for this lecture yet.";
+                }
+                if (chatBody) chatBody.style.display = "none";
+                if (input) input.disabled = true;
+                if (sendBtn) sendBtn.disabled = true;
+
+                if (aiPollingInterval) {
+                    clearInterval(aiPollingInterval);
+                    aiPollingInterval = null;
+                }
+            }
+        } catch (err) {
+            console.warn("Could not check transcript status:", err);
+        }
+    }
+}
+
+window.submitQuickQuestion = function(question) {
+    const input = document.getElementById("aiQuestionInput");
+    if (input) {
+        input.value = question;
+        handleAiQuestionSubmit();
+    }
+};
+
+window.handleAiQuestionSubmit = async function(event) {
+    if (event) event.preventDefault();
+    if (isAiAsking || !currentLecture) return;
+
+    const input = document.getElementById("aiQuestionInput");
+    const question = (input?.value || "").trim();
+    if (!question) return;
+
+    const lectureId = getLectureId(currentLecture);
+    const messagesScroll = document.getElementById("aiMessagesScroll");
+    const loadingIndicator = document.getElementById("aiLoadingIndicator");
+    const sendBtn = document.getElementById("aiSendBtn");
+
+    // Append student bubble
+    appendChatBubble("user", question);
+    if (input) input.value = "";
+
+    isAiAsking = true;
+    if (sendBtn) sendBtn.disabled = true;
+    if (loadingIndicator) loadingIndicator.style.display = "flex";
+    if (messagesScroll) messagesScroll.scrollTop = messagesScroll.scrollHeight;
+
+    try {
+        const user = currentUser || readJSON(AUTH_KEY, {});
+        const role = user.role || "STUDENT";
+        const userId = user.id || user._id || "";
+        const email = user.email || "";
+
+        const res = await fetch(`${API_URL}/lectures/${encodeURIComponent(lectureId)}/ask`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-User-Id": userId,
+                "X-User-Role": role,
+                "X-User-Email": email
+            },
+            body: JSON.stringify({
+                question: question,
+                userId: userId,
+                userRole: role,
+                userEmail: email
+            })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            const errorMsg = data.message || `Error ${res.status}: Unable to get answer.`;
+            appendChatBubble("bot", `⚠️ ${errorMsg}`);
+            return;
+        }
+
+        // Render Answer with clickable timestamps and source links
+        appendChatBubble("bot", data.answer || "No answer returned.", data.sources);
+
+    } catch (err) {
+        console.error("AI Ask error:", err);
+        appendChatBubble("bot", "⚠️ Network error connecting to AI assistant on port 8081.");
+    } finally {
+        isAiAsking = false;
+        if (sendBtn) sendBtn.disabled = false;
+        if (loadingIndicator) loadingIndicator.style.display = "none";
+        if (messagesScroll) messagesScroll.scrollTop = messagesScroll.scrollHeight;
+    }
+};
+
+function appendChatBubble(sender, rawText, sources) {
+    const messagesScroll = document.getElementById("aiMessagesScroll");
+    if (!messagesScroll) return;
+
+    const bubble = document.createElement("div");
+    bubble.className = `ai-bubble ${sender === "user" ? "ai-user-bubble" : "ai-bot-bubble"}`;
+
+    if (sender === "user") {
+        bubble.innerHTML = `
+            <div class="ai-bubble-content">${escapeHTML(rawText)}</div>
+        `;
+    } else {
+        let formattedHtml = escapeHTML(rawText);
+
+        // Format bold and italics
+        formattedHtml = formattedHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        // Replace timestamps like [MM:SS] or MM:SS into clickable chips
+        formattedHtml = formattedHtml.replace(/(?:\[|\()?\b(\d{1,2}:\d{2}(?::\d{2})?)\b(?:\]|\))?/g, (match, p1) => {
+            return `<button type="button" class="timestamp-chip" onclick="seekLectureTimestamp('${p1}')">⏱ ${p1}</button>`;
+        });
+
+        // Add Source Snippets if present
+        let sourcesHtml = "";
+        if (Array.isArray(sources) && sources.length > 0) {
+            sourcesHtml = `
+                <div class="ai-sources-container">
+                    <div class="ai-sources-title">Key Lecture Timestamps:</div>
+                    ${sources.map(s => `
+                        <div class="ai-source-item">
+                            <button type="button" class="timestamp-chip" onclick="seekLecturePlayer(${s.startTime})">⏱ ${escapeHTML(s.formattedTime || formatAiTimestamp(s.startTime))}</button>
+                            <span style="opacity:0.85;">${escapeHTML(s.text.length > 90 ? s.text.substring(0, 90) + '...' : s.text)}</span>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        bubble.innerHTML = `
+            <div class="ai-bot-avatar">🤖</div>
+            <div class="ai-bubble-content">
+                <div style="white-space:pre-wrap;">${formattedHtml}</div>
+                ${sourcesHtml}
+            </div>
+        `;
+    }
+
+    messagesScroll.appendChild(bubble);
+    messagesScroll.scrollTop = messagesScroll.scrollHeight;
+}
+
+// Hook into existing video open function so AI assistant loads whenever a lecture is opened
+const originalOpenVideo = typeof openVideo === "function" ? openVideo : null;
+if (originalOpenVideo) {
+    openVideo = function(...args) {
+        const result = originalOpenVideo.apply(this, args);
+        if (currentLecture) {
+            initLectureAiAssistant(currentLecture);
+        }
+        return result;
+    };
+}

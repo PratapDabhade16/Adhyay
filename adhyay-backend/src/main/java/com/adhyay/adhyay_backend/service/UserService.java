@@ -1,8 +1,9 @@
 package com.adhyay.adhyay_backend.service;
 
+import com.adhyay.adhyay_backend.dto.auth.RegisterRequest;
 import com.adhyay.adhyay_backend.model.User;
 import com.adhyay.adhyay_backend.repository.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -13,12 +14,12 @@ public class UserService {
     public static final String REQUIRED_DOMAIN = "@walchandsangli.ac.in";
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
 
-    public UserService(UserRepository userRepository, OtpService otpService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, OtpService otpService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
         this.otpService = otpService;
     }
 
@@ -52,6 +53,17 @@ public class UserService {
         }
 
         return userRepository.save(user);
+    }
+
+    public User register(RegisterRequest req) {
+        User user = new User();
+        user.setName(req.name().trim());
+        user.setEmail(req.email().trim().toLowerCase());
+        user.setPassword(req.password());
+        user.setRole(req.role() != null ? req.role().toUpperCase() : "STUDENT");
+        user.setDepartment(req.department() != null ? req.department() : req.branch());
+        user.setRollNumber(req.rollNumber() != null ? req.rollNumber() : req.prnNumber());
+        return registerUser(user);
     }
 
     public User loginUser(String email, String password) {
@@ -93,7 +105,6 @@ public class UserService {
             newUser.setRole(role != null && !role.isBlank() ? role.toUpperCase() : "STUDENT");
             newUser.setDepartment(department != null && !department.isBlank() ? department : "General");
             newUser.setRollNumber(rollNumber);
-            // Random secure password for Google-authenticated user
             newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
             return userRepository.save(newUser);
         });

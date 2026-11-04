@@ -168,9 +168,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                localStorage.setItem("adhyayUser", JSON.stringify(data));
-                const role = data.role || selectedRole;
-                showMessage(loginMessage, `Welcome back, ${data.name || "User"}! Redirecting...`, "success");
+                setAuthSession(data);
+                const user = data.user || data;
+                const role = user.role || selectedRole;
+                showMessage(loginMessage, `Welcome back, ${user.name || "User"}! Redirecting...`, "success");
 
                 setTimeout(() => {
                     redirectByRole(role);
@@ -266,10 +267,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                // Auto login on successful registration
-                localStorage.setItem("adhyayUser", JSON.stringify(data));
-                const role = data.role || selectedRole;
-                showMessage(registerMessage, `Account created for ${data.name}! Taking you to your dashboard...`, "success");
+                setAuthSession(data);
+                const user = data.user || data;
+                const role = user.role || selectedRole;
+                showMessage(registerMessage, `Account created for ${user.name}! Taking you to your dashboard...`, "success");
 
                 setTimeout(() => {
                     redirectByRole(role);

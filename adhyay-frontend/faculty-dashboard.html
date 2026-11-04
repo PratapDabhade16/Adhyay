@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADHYAY | Share a lecture</title>
   <link rel="stylesheet" href="adhyay.css">
+  <link rel="stylesheet" href="faculty-dashboard.css?v=70">
   <style>
     /* Two column grid for form + moodle courses */
     .faculty-top-grid {
@@ -121,6 +122,11 @@
     <nav class="sidebar-nav">
       <button class="nav-item active" id="navUpload" data-page="upload" type="button">Upload lecture</button>
       <button class="nav-item" id="navLectures" data-page="mylectures" type="button">My lectures</button>
+      <button class="nav-item" id="navMaterials" data-page="materials" type="button">Course Materials &amp; Assignments</button>
+      <button class="nav-item" id="navAnnouncements" data-page="announcements" type="button">Announcements</button>
+      <button class="nav-item" id="navDoubts" data-page="doubts" type="button">
+        Student Doubts <span id="facultyDoubtsBadge" style="background:#EF4444;color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;display:none;">0</span>
+      </button>
       <button class="nav-item" id="navMoodle" data-page="courses" type="button">Moodle courses</button>
     </nav>
 
@@ -242,15 +248,16 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width:45%;">Title</th>
-            <th style="width:30%;">Subject</th>
-            <th style="width:15%;">Unit</th>
+            <th style="width:35%;">Title</th>
+            <th style="width:25%;">Subject</th>
+            <th style="width:12%;">Unit</th>
+            <th style="width:18%;">AI Transcript</th>
             <th style="width:10%;text-align:right;"></th>
           </tr>
         </thead>
         <tbody id="lecturesTableBody">
           <tr>
-            <td colspan="4" style="text-align:center;color:var(--muted);padding:32px;">
+            <td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">
               No lectures uploaded yet. Drop a recording above to upload your first lecture.
             </td>
           </tr>
@@ -258,9 +265,149 @@
       </table>
     </div>
 
+    <!-- Student Doubts & Q&A Panel -->
+    <div class="panel" id="doubtsPanel" style="margin-top:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div>
+          <h2 class="panel-title" style="margin:0;">Student Doubts & Q&A</h2>
+          <p class="panel-subtitle" style="margin:4px 0 0 0;">View questions asked by students across your lectures and reply with official answers.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select class="form-select" id="doubtFilterStatus" style="width:auto;min-width:140px;" onchange="loadFacultyDoubts()">
+            <option value="ALL">All doubts</option>
+            <option value="OPEN">Pending reply</option>
+            <option value="RESOLVED" selected>Answered</option>
+          </select>
+          <button type="button" class="btn-ghost" onclick="loadFacultyDoubts()" style="font-size:13px;padding:6px 12px;">🔄 Refresh</button>
+        </div>
+      </div>
+      <div class="msg-banner" id="doubtReplyMessage"></div>
+      <div id="facultyDoubtsContainer" class="faculty-doubts-list">
+        <p style="color:var(--muted);text-align:center;padding:32px;">Loading student doubts...</p>
+      </div>
+    </div>
+
+    <!-- Course Materials & Assignments Panel (Phase 3) -->
+    <div class="panel" id="materialsPanel" style="display:none;margin-top:24px;">
+      <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <h2 class="panel-title" style="margin:0;">Course Materials &amp; Assignments</h2>
+          <p class="panel-subtitle" style="margin:4px 0 0 0;">Upload lecture slides, notes, reference PDFs, and create student assignments with deadlines.</p>
+        </div>
+        <button type="button" class="btn-primary" onclick="toggleMaterialUploadForm()" style="font-size:13px;padding:8px 16px;">+ Upload New Material</button>
+      </div>
+
+      <!-- Upload Form (Collapsible) -->
+      <div id="materialUploadCard" style="display:none;background:#F8FAFC;border:1px solid #CBD5E1;border-radius:12px;padding:20px;margin-bottom:24px;">
+        <h3 style="font-size:16px;color:#0F172A;margin:0 0 16px 0;">Upload Material or Assignment</h3>
+        <form id="materialForm" onsubmit="handleMaterialUpload(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Material / Assignment Title *</label>
+              <input type="text" id="matTitle" class="form-input" placeholder="e.g. Unit 3 Trees - Lecture Slides" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subject *</label>
+              <select id="matSubject" class="form-select" required>
+                <option value="Data Structures">Data Structures</option>
+                <option value="DBMS">DBMS</option>
+                <option value="Operating Systems">Operating Systems</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Description / Instructions</label>
+            <textarea id="matDescription" class="form-input" rows="2" placeholder="Brief notes or instructions for students..."></textarea>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;align-items:center;">
+            <div class="form-group">
+              <label class="form-label">Select File (PDF, PPT, DOC, ZIP) *</label>
+              <input type="file" id="matFileInput" class="form-input" accept=".pdf,.ppt,.pptx,.doc,.docx,.zip,.txt" required>
+            </div>
+            <div style="padding-top:18px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13.5px;color:#0F172A;">
+                <input type="checkbox" id="matIsAssignment" onchange="toggleAssignmentDeadline(this.checked)" style="width:16px;height:16px;">
+                Mark as Graded Assignment
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="matDeadlineWrap" style="display:none;margin-bottom:16px;background:#FFFBEB;border:1px solid #FDE68A;padding:12px 16px;border-radius:8px;">
+            <label class="form-label" style="color:#92400E;">⏰ Assignment Due Date &amp; Time *</label>
+            <input type="datetime-local" id="matDeadline" class="form-input" style="max-width:300px;">
+            <span style="font-size:12px;color:#B45309;display:block;margin-top:4px;">Students will receive automatic deadline reminders 24 hours prior via email and dashboard.</span>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;">
+            <button type="button" class="btn-ghost" onclick="toggleMaterialUploadForm()">Cancel</button>
+            <button type="submit" id="matSubmitBtn" class="btn-primary">Upload &amp; Notify Students</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="msg-banner" id="materialMsg"></div>
+
+      <!-- Materials List Table -->
+      <div id="facultyMaterialsContainer">
+        <p style="color:var(--muted);text-align:center;padding:32px;">Loading materials...</p>
+      </div>
+    </div>
+
+    <!-- Announcements Panel (Phase 3) -->
+    <div class="panel" id="announcementsPanel" style="display:none;margin-top:24px;">
+      <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <h2 class="panel-title" style="margin:0;">Institutional &amp; Department Announcements</h2>
+          <p class="panel-subtitle" style="margin:4px 0 0 0;">Broadcast notices to students across subjects or branches. Automatically dispatches emails.</p>
+        </div>
+      </div>
+
+      <!-- Post Announcement Card -->
+      <div style="background:#F8FAFC;border:1px solid #CBD5E1;border-radius:12px;padding:20px;margin-bottom:24px;">
+        <h3 style="font-size:16px;color:#0F172A;margin:0 0 16px 0;">Create New Announcement</h3>
+        <form id="announcementForm" onsubmit="handlePostAnnouncement(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
+            <div class="form-group">
+              <label class="form-label">Announcement Title *</label>
+              <input type="text" id="annTitle" class="form-input" placeholder="e.g. Mid-term Exam Schedule &amp; Syllabus" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target Subject *</label>
+              <select id="annSubject" class="form-select">
+                <option value="ALL">All Subjects (General Notice)</option>
+                <option value="Data Structures">Data Structures</option>
+                <option value="DBMS">DBMS</option>
+                <option value="Operating Systems">Operating Systems</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Announcement Content *</label>
+            <textarea id="annContent" class="form-input" rows="3" placeholder="Provide full details, guidelines, or schedule..." required></textarea>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#64748B;">✉️ Email alerts will be sent automatically to enrolled students.</span>
+            <button type="submit" id="annSubmitBtn" class="btn-primary">📢 Post Announcement</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="msg-banner" id="announcementMsg"></div>
+
+      <!-- Announcements List -->
+      <div id="facultyAnnouncementsContainer">
+        <p style="color:var(--muted);text-align:center;padding:32px;">Loading announcements...</p>
+      </div>
+    </div>
+
   </main>
 </div>
 
-<script src="faculty-dashboard.js?v=2"></script>
+<script src="auth-client.js?v=2"></script>
+<script src="faculty-dashboard.js?v=70"></script>
 </body>
 </html>

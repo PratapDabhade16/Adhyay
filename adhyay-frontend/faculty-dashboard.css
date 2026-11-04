@@ -1,11 +1,11 @@
-﻿/* faculty-dashboard.css — supplementary styles only.
-   Core design system is in adhyay.css */
+/* faculty-dashboard.css — Modern Styles for Faculty Dashboard */
 
 .msg-banner {
   padding: 11px 16px;
   border-radius: var(--radius-md);
   font-size: 14px;
   display: none;
+  margin-bottom: 14px;
 }
 .msg-banner.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; display: block; }
 .msg-banner.error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; display: block; }
@@ -16,4 +16,199 @@
 }
 .upload-progress.visible, #progressContainer[style*="block"] {
   display: block;
+}
+
+/* AI Transcript Badges & Actions */
+.chip-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.chip-ai.done {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.chip-ai.pending {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  animation: pulse-ai 2s infinite ease-in-out;
+}
+.chip-ai.failed {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.chip-ai.none {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+@keyframes pulse-ai {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.btn-retry-ai {
+  background: #0D3E36;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-retry-ai:hover {
+  background: #14594e;
+}
+.btn-retry-ai:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================================
+   FACULTY DOUBTS & DISCUSSIONS MANAGEMENT
+   ======================================================== */
+.faculty-doubts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.faculty-doubt-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease;
+}
+.faculty-doubt-card:hover {
+  border-color: #CBD5E1;
+}
+
+.faculty-doubt-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.lecture-context-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #EEF4F1;
+  color: #0D3E36;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-meta-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748B;
+}
+.student-meta-name {
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.faculty-doubt-q {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #1E293B;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+}
+
+.faculty-reply-section {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 12px;
+}
+
+.faculty-reply-active-box {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.faculty-reply-active-box .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #065F46;
+  font-weight: 700;
+}
+.faculty-reply-active-box p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #064E3B;
+}
+
+.faculty-reply-textarea {
+  width: 100%;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: #0F172A;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  transition: border-color 0.15s ease;
+}
+.faculty-reply-textarea:focus {
+  border-color: #0D3E36;
+  box-shadow: 0 0 0 3px rgba(13, 62, 54, 0.1);
+}
+
+.faculty-reply-btn {
+  background: #0D3E36;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.faculty-reply-btn:hover {
+  background: #14594E;
 }

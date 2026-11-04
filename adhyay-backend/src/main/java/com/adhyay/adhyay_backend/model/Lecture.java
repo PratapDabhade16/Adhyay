@@ -26,9 +26,16 @@ public class Lecture {
     private String semester;
     private Instant createdAt;
 
+    // AI Assistant & Transcription Fields
+    private String transcriptStatus = "NONE"; // NONE, PENDING, DONE, FAILED
+    private String transcriptError;
+    private String transcriptText;
+    private Double durationSeconds;
+
     public Lecture() {
         this.status = "APPROVED";
         this.views = 0;
+        this.transcriptStatus = "NONE";
         this.createdAt = Instant.now();
     }
 
@@ -134,5 +141,37 @@ public class Lecture {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getTranscriptStatus() {
+        return transcriptStatus != null ? transcriptStatus : "NONE";
+    }
+
+    public void setTranscriptStatus(String transcriptStatus) {
+        this.transcriptStatus = transcriptStatus;
+    }
+
+    public String getTranscriptError() {
+        return transcriptError;
+    }
+
+    public void setTranscriptError(String transcriptError) {
+        this.transcriptError = transcriptError;
+    }
+
+    public String getTranscriptText() {
+        return transcriptText;
+    }
+
+    public void setTranscriptText(String transcriptText) {
+        this.transcriptText = transcriptText;
+    }
+
+    public Double getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public void setDurationSeconds(Double durationSeconds) {
+        this.durationSeconds = durationSeconds;
     }
 }

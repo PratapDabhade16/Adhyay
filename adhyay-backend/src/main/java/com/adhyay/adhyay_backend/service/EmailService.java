@@ -1,6 +1,7 @@
 package com.adhyay.adhyay_backend.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -135,6 +136,60 @@ public class EmailService {
         } else {
             System.err.println("[ADHYAY 2FA] ⚠️ Resend response HTTP " + response.statusCode() + " for " + recipient + ": " + response.body());
             return false;
+        }
+    }
+
+    @Async
+    public void sendNotificationEmail(String toEmail, String subject, String title, String message, String actionLink) {
+        if (apiKey == null || apiKey.trim().isEmpty() || toEmail == null || toEmail.isBlank()) {
+            return;
+        }
+
+        try {
+            String htmlContent = """
+                <div style='font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #E5E7EB; border-radius: 12px; background: #F8FAFC;'>
+                  <div style='background: #0D3E36; color: #fff; padding: 18px 24px; border-radius: 8px; margin-bottom: 20px;'>
+                    <h2 style='margin: 0; font-size: 20px;'>🏛️ Walchand College of Engineering</h2>
+                    <p style='margin: 4px 0 0; font-size: 13px; opacity: 0.85;'>ADHYAY Learning Platform Alert</p>
+                  </div>
+                  <h3 style='color: #0F172A; font-size: 18px; margin-top: 0;'>%s</h3>
+                  <p style='color: #334155; font-size: 14.5px; line-height: 1.6;'>%s</p>
+                  <div style='margin: 24px 0; text-align: center;'>
+                    <a href='%s' style='background: #0D3E36; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; display: inline-block;'>View in ADHYAY &rarr;</a>
+                  </div>
+                  <hr style='border: none; border-top: 1px solid #CBD5E1; margin: 24px 0;'>
+                  <p style='font-size: 11px; color: #94A3B8; margin: 0;'>WCE Academic Notification &bull; Walchand College of Engineering, Sangli</p>
+                </div>
+                """.formatted(title, message, actionLink != null ? actionLink : "http://localhost:3000/student-dashboard.html");
+
+            String escapedHtml = htmlContent.replace("\"", "\\\"").replace("\n", "");
+            String targetEmail = toEmail;
+
+            // In Resend sandbox mode, if target is not the verified sandbox address, log and try
+            String jsonBody = """
+                {
+                  "from": "ADHYAY <%s>",
+                  "to": ["%s"],
+                  "subject": "%s",
+                  "html": "%s"
+                }
+                """.formatted(fromAddress, targetEmail, subject, escapedHtml);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + apiKey.trim())
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                System.out.println("[ADHYAY Notification] 🚀 Email delivered to " + targetEmail + ": " + subject);
+            } else {
+                System.out.println("[ADHYAY Notification] ⚠️ Note on email delivery (" + response.statusCode() + "): " + response.body());
+            }
+        } catch (Exception e) {
+            System.err.println("[ADHYAY Notification] ⚠️ Async email error: " + e.getMessage());
         }
     }
 

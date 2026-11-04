@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADHYAY | Good to see you.</title>
   <link rel="stylesheet" href="adhyay.css">
+  <link rel="stylesheet" href="student-dashboard.css?v=70">
   <style>
     /* ── Lecture Cards Grid ── */
     .section-title {
       font-size: 20px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--text, #0F172A);
       margin-bottom: 16px;
       letter-spacing: -0.3px;
     }
@@ -21,9 +22,9 @@
       margin-bottom: 36px;
     }
     .lecture-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      background: var(--surface, #FFFFFF);
+      border: 1px solid var(--border, #E2E8F0);
+      border-radius: var(--radius-lg, 12px);
       overflow: hidden;
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -62,24 +63,26 @@
     .card-title {
       font-size: 16px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--text, #0F172A);
       line-height: 1.35;
       margin-bottom: 4px;
     }
     .card-meta {
       font-size: 13px;
-      color: var(--muted);
+      color: var(--muted, #64748B);
     }
     .card-progress {
       margin-top: 14px;
     }
 
-    /* ── Watch Theater (Full Overlay matching Image 1) ── */
+    /* ========================================================
+       MODERN WATCH THEATER OVERLAY & VIDEO CONTROLS
+       ======================================================== */
     .watch-overlay {
       position: fixed;
       inset: 0;
       z-index: 1000;
-      background: var(--bg);
+      background: #F8FAFC;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
@@ -91,30 +94,36 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 48px;
-      background: var(--bg);
+      padding: 16px 40px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E2E8F0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      flex-shrink: 0;
     }
     .watch-body {
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 36px;
-      padding: 0 48px 48px;
-      max-width: 1440px;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 32px;
+      padding: 24px 40px 60px;
+      max-width: 1600px;
       margin: 0 auto;
       width: 100%;
+      box-sizing: border-box;
+      align-items: start;
     }
     .watch-primary {
       min-width: 0;
     }
-    
-    /* Video Screen Container */
+
+    /* Video Player Screen Container */
     .video-screen {
       position: relative;
       aspect-ratio: 16/9;
       width: 100%;
-      background: #18232C;
-      border-radius: var(--radius-lg);
+      background: #0B1320;
+      border-radius: 14px;
       overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -124,75 +133,80 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: #000;
     }
-    /* Centered Play Button */
     .video-center-play {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 64px;
-      height: 64px;
+      width: 68px;
+      height: 68px;
       background: #F4A526;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #18232C;
-      font-size: 22px;
-      padding-left: 4px;
+      font-size: 24px;
+      padding-left: 5px;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      z-index: 2;
-      transition: transform 0.15s ease, background 0.15s ease;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+      z-index: 5;
+      transition: transform 0.18s ease, background 0.18s ease;
     }
     .video-center-play:hover {
       transform: translate(-50%, -50%) scale(1.08);
       background: #FBBF24;
     }
-    /* Video Controls Bar */
     .video-bottom-bar {
       position: relative;
-      z-index: 2;
-      padding: 12px 18px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      z-index: 6;
+      padding: 14px 20px;
+      background: linear-gradient(transparent, rgba(11, 19, 32, 0.95));
       color: #fff;
     }
     .video-timeline {
       width: 100%;
-      height: 4px;
+      height: 5px;
       background: rgba(255,255,255,0.25);
       border-radius: 99px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       cursor: pointer;
       position: relative;
+      transition: height 0.15s ease;
+    }
+    .video-timeline:hover {
+      height: 7px;
     }
     .video-timeline-fill {
-      width: 64%;
       height: 100%;
       background: #F4A526;
       border-radius: 99px;
+      transition: width 0.1s linear;
     }
     .video-controls-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 12px;
-      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
     }
     .video-controls-actions {
       display: flex;
       gap: 12px;
+      align-items: center;
       cursor: pointer;
     }
     .video-controls-actions span:hover {
-      color: #fff;
+      color: #F4A526;
     }
 
-    /* Below Video Info */
+    /* Video Metadata Below Player */
     .watch-info {
-      margin-top: 20px;
+      margin-top: 24px;
     }
     .watch-tag-row {
       margin-bottom: 10px;
@@ -203,195 +217,760 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
     .watch-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text);
+      font-size: 26px;
+      font-weight: 800;
+      color: #0F172A;
       letter-spacing: -0.5px;
+      line-height: 1.3;
     }
     .watch-btn-group {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
-    
-    /* Instructor Card */
     .instructor-row {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding-bottom: 22px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
+      gap: 16px;
+      padding: 16px 20px;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     .instructor-avatar-circle {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
-      background: #EBA83A;
+      background: linear-gradient(135deg, #EBA83A, #F59E0B);
       color: #fff;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 19px;
       display: grid;
       place-items: center;
       flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
     }
     .instructor-name {
       font-size: 15px;
       font-weight: 700;
-      color: var(--text);
+      color: #0F172A;
       line-height: 1.3;
     }
     .instructor-dept {
       font-size: 13px;
-      color: var(--muted);
+      color: #64748B;
+      margin-top: 2px;
     }
 
-    /* Comments & Doubts */
-    .comments-section {
-      margin-top: 10px;
-    }
-    .comments-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 18px;
-    }
-    .comment-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .comment-avatar-s {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #DDE3EA;
-      color: #374151;
-      font-weight: 700;
-      font-size: 13px;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-    }
-    .comment-input-box {
-      flex: 1;
-    }
-    .comment-input-box input {
-      width: 100%;
-      padding: 12px 18px;
-      border: 1px solid #D1D5DB;
-      border-radius: var(--radius-md);
-      font-size: 14px;
-      color: var(--text);
-      background: var(--surface);
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .comment-input-box input:focus {
-      border-color: var(--green-dark);
-    }
-
-    /* Comment List Items */
-    .comment-list {
+    /* ========================================================
+       RIGHT SIDEBAR: ASK AI ASSISTANT + UP NEXT PLAYLIST
+       ======================================================== */
+    .up-next-panel {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      height: 640px;
+      max-height: calc(100vh - 120px);
+      position: sticky;
+      top: 24px;
+      box-sizing: border-box;
     }
-    .comment-item {
+    .sidebar-tab-switcher {
       display: flex;
-      gap: 12px;
+      background: #F1F5F9;
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 14px;
+      flex-shrink: 0;
     }
-    .comment-body {
+    .sidebar-tab-btn {
       flex: 1;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #64748B;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.18s ease;
     }
-    .comment-header {
+    .sidebar-tab-btn:hover {
+      color: #0F172A;
+    }
+    .sidebar-tab-btn.active {
+      background: #FFFFFF;
+      color: #0D3E36;
+      font-weight: 700;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+    }
+    .sidebar-tab-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* AI Panel Header */
+    .ai-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #E2E8F0;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .ai-header-title {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 4px;
-    }
-    .comment-author-name {
-      font-size: 14px;
       font-weight: 700;
-      color: var(--text);
-    }
-    .comment-time {
-      font-size: 12px;
-      color: var(--muted);
-      margin-left: 2px;
-    }
-    .comment-content {
       font-size: 14px;
-      color: var(--text-2);
-      line-height: 1.5;
+      color: #0F172A;
+    }
+    .ai-model-tag {
+      font-size: 10px;
+      font-weight: 700;
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 2px 7px;
+      border-radius: 5px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .ai-status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #F1F5F9;
+      color: #64748B;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ai-status-badge.done {
+      background: #DCFCE7;
+      color: #166534;
+    }
+    .ai-status-badge.pending {
+      background: #FEF3C7;
+      color: #B45309;
+    }
+    .ai-status-badge.disabled {
+      background: #FEE2E2;
+      color: #991B1B;
     }
 
-    /* Up Next Sidebar */
-    .up-next-panel {
-      padding-top: 4px;
+    /* Disabled State Banner */
+    .ai-disabled-banner {
+      background: #F8FAFC;
+      border: 1.5px dashed #CBD5E1;
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      color: #64748B;
+      font-size: 13.5px;
+      line-height: 1.5;
+      margin: auto 0;
     }
-    .up-next-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 16px;
+    .ai-disabled-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
     }
-    .up-next-list {
+
+    /* AI Chat Body */
+    .ai-chat-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+    .ai-messages-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 6px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      scroll-behavior: smooth;
+    }
+    .ai-messages-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .ai-messages-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .ai-messages-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 99px;
+    }
+    .ai-bubble {
+      display: flex;
+      gap: 10px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      align-items: flex-start;
+    }
+    .ai-user-bubble {
+      flex-direction: row-reverse;
+      align-self: flex-end;
+      max-width: 86%;
+    }
+    .ai-user-bubble .ai-bubble-content {
+      background: #0D3E36;
+      color: #FFFFFF;
+      border-radius: 16px 4px 16px 16px;
+      padding: 10px 14px;
+      box-shadow: 0 2px 8px rgba(13, 62, 54, 0.2);
+      word-break: break-word;
+    }
+    .ai-bot-bubble {
+      align-self: flex-start;
+      max-width: 95%;
+    }
+    .ai-bot-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0D3E36 0%, #15803D 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(13, 62, 54, 0.2);
+    }
+    .ai-bot-bubble .ai-bubble-content {
+      background: #F8FAFC;
+      color: #1E293B;
+      border-radius: 4px 16px 16px 16px;
+      padding: 12px 14px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+      word-break: break-word;
+    }
+    .ai-bot-bubble .ai-bubble-content p {
+      margin: 0 0 8px 0;
+    }
+    .ai-bot-bubble .ai-bubble-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Suggestion Chips */
+    .ai-suggestion-chips {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .ai-chip {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ai-chip:hover {
+      background: #F0FDF4;
+      border-color: #0D3E36;
+      color: #0D3E36;
+      transform: translateX(2px);
+    }
+
+    /* Timestamps Chips */
+    .timestamp-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #E0F2FE;
+      color: #0369A1;
+      border: 1px solid #BAE6FD;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin: 2px 4px 2px 0;
+      vertical-align: middle;
+    }
+    .timestamp-chip:hover {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #0284C7;
+      transform: translateY(-1px);
+    }
+    .ai-sources-container {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed #CBD5E1;
+    }
+    .ai-sources-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+
+    /* AI Loading state */
+    .ai-loading-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #F1F5F9;
+      border-radius: 10px;
+      font-size: 12.5px;
+      color: #475569;
+      margin: 8px 0;
+    }
+    .ai-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #CBD5E1;
+      border-top-color: #0D3E36;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* AI Input Form */
+    .ai-input-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #E2E8F0;
+      flex-shrink: 0;
+    }
+    .ai-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 10px;
+      font-size: 13.5px;
+      outline: none;
+      background: #FFFFFF;
+      color: #0F172A;
+      transition: all 0.15s ease;
+    }
+    .ai-input:focus {
+      border-color: #0D3E36;
+      box-shadow: 0 0 0 3px rgba(13, 62, 54, 0.12);
+    }
+    .ai-send-btn {
+      background: #0D3E36;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+    }
+    .ai-send-btn:hover:not(:disabled) {
+      background: #14594E;
+      transform: scale(1.04);
+    }
+    .ai-send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Up Next Playlist */
+    .up-next-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .up-next-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
     }
     .up-next-card {
       display: flex;
       gap: 12px;
       cursor: pointer;
-      border-radius: var(--radius-md);
-      transition: opacity 0.15s;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
     }
     .up-next-card:hover {
-      opacity: 0.88;
+      background: #F8FAFC;
+      border-color: #E2E8F0;
     }
     .up-next-thumb {
       width: 96px;
-      height: 62px;
-      border-radius: var(--radius-sm);
+      height: 60px;
+      border-radius: 8px;
       flex-shrink: 0;
-      background: var(--bg-c, #134E48);
+      background: #134E48;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
     }
     .up-next-info {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 0;
     }
     .up-next-lecture-title {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 700;
-      color: var(--text);
+      color: #0F172A;
       line-height: 1.3;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .up-next-lecture-sub {
       font-size: 12px;
-      color: var(--muted);
+      color: #64748B;
     }
 
-    @media (max-width: 1024px) {
+    /* ========================================================
+       DOUBTS & DISCUSSION SECTION (STUDENT & FACULTY INTERACTION)
+       ======================================================== */
+    .comments-section {
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 1px solid #E2E8F0;
+    }
+    .doubts-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .doubts-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0F172A;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+    }
+    .doubts-count-pill {
+      background: #E2E8F0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 99px;
+    }
+    .doubts-subtext {
+      font-size: 13.5px;
+      color: #64748B;
+      margin: 0 0 20px 0;
+    }
+    .ask-doubt-card {
+      display: flex;
+      gap: 14px;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+      margin-bottom: 26px;
+    }
+    .doubt-user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #0D3E36;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .doubt-input-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .doubt-textarea {
+      width: 100%;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #0F172A;
+      outline: none;
+      resize: vertical;
+      min-height: 60px;
+      background: #FFFFFF;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+    .doubt-textarea:focus {
+      border-color: #0D3E36;
+      box-shadow: 0 0 0 3px rgba(13, 62, 54, 0.12);
+    }
+    .doubt-actions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .doubt-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-tag-timestamp {
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .btn-tag-timestamp:hover {
+      background: #E2E8F0;
+      color: #0F172A;
+      border-color: #94A3B8;
+    }
+    .doubt-hint-text {
+      font-size: 12px;
+      color: #94A3B8;
+    }
+    .btn-post-doubt {
+      background: #0D3E36;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-post-doubt:hover:not(:disabled) {
+      background: #14594E;
+      transform: translateY(-1px);
+    }
+    .btn-post-doubt:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .doubts-list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .doubt-item-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      transition: border-color 0.15s ease;
+    }
+    .doubt-item-card:hover {
+      border-color: #CBD5E1;
+    }
+    .doubt-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .doubt-author-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .doubt-author-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      color: #334155;
+      font-weight: 700;
+      font-size: 14px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .doubt-author-meta {
+      display: flex;
+      flex-direction: column;
+    }
+    .doubt-author-name {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+    .doubt-time-ago {
+      font-size: 12px;
+      color: #64748B;
+    }
+    .doubt-status-pill {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .doubt-status-pill.open {
+      background: #FEF3C7;
+      color: #B45309;
+    }
+    .doubt-status-pill.answered {
+      background: #DCFCE7;
+      color: #15803D;
+    }
+    .doubt-question-body {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: #1E293B;
+      margin: 0 0 16px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .faculty-reply-box {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-top: 14px;
+      position: relative;
+    }
+    .faculty-reply-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .faculty-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .faculty-verified-tag {
+      background: #0D3E36;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .faculty-replier-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #064E3B;
+    }
+    .faculty-reply-time {
+      font-size: 11.5px;
+      color: #059669;
+    }
+    .faculty-reply-text {
+      font-size: 14px;
+      line-height: 1.55;
+      color: #064E3B;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .doubt-delete-btn {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.15s ease;
+    }
+    .doubt-delete-btn:hover {
+      color: #EF4444;
+    }
+
+    @media (max-width: 1180px) {
       .watch-body {
         grid-template-columns: 1fr;
       }
-      .watch-topbar, .watch-body {
-        padding-left: 24px;
-        padding-right: 24px;
+      .up-next-panel {
+        position: static;
+        height: 520px;
+        max-height: none;
       }
       .lecture-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
     @media (max-width: 640px) {
+      .watch-topbar, .watch-body {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
       .lecture-grid {
         grid-template-columns: 1fr;
       }
@@ -415,6 +994,8 @@
       <button class="nav-item" id="navContinue" data-view="continue" type="button">Continue watching</button>
       <button class="nav-item" id="navSaved" data-view="saved" type="button">Saved lectures</button>
       <button class="nav-item" id="navHistory" data-view="history" type="button">Watch history</button>
+      <button class="nav-item" id="navMaterials" data-view="materials" type="button">Materials &amp; Notes</button>
+      <button class="nav-item" id="navAnnouncements" data-view="announcements" type="button">Announcements</button>
     </nav>
 
     <div class="sidebar-user">
@@ -471,8 +1052,19 @@
 
     <!-- Continue watching section -->
     <section id="continueSection" hidden>
-      <h2 class="section-title">Continue watching</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h2 class="section-title" style="margin:0;">Continue watching</h2>
+        <span style="font-size:12.5px;color:var(--muted);">Synced every 10s &bull; Auto-resumes on click</span>
+      </div>
       <div class="lecture-grid" id="continueGrid"></div>
+    </section>
+
+    <!-- Subject Completion Progress Section (Phase 3) -->
+    <section id="subjectProgressSection" style="margin-bottom:36px;">
+      <h2 class="section-title">Subject Progress</h2>
+      <div id="subjectProgressGrid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;">
+        <!-- dynamic subject completion progress bars -->
+      </div>
     </section>
 
     <!-- All lectures section -->
@@ -480,6 +1072,31 @@
       <h2 class="section-title" id="lecturesSectionTitle">All lectures</h2>
       <div class="lecture-grid" id="lecturesGrid">
         <p style="color:var(--muted);grid-column:1/-1;padding:24px 0;">No lectures available yet. Check back soon!</p>
+      </div>
+    </section>
+
+    <!-- Course Materials & Assignments Section (Phase 3) -->
+    <section id="materialsSection" hidden>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 class="section-title" style="margin:0;">Materials &amp; Assignments</h2>
+          <p class="page-subtitle" style="margin:4px 0 0 0;">Download lecture slides, notes, and complete assignments before deadlines.</p>
+        </div>
+        <button class="btn-ghost" id="backToAllFromMaterialsBtn" type="button">← All lectures</button>
+      </div>
+      <div id="studentMaterialsGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:20px;">
+        <!-- dynamic materials & assignments -->
+      </div>
+    </section>
+
+    <!-- Announcements Section (Phase 3) -->
+    <section id="announcementsSection" hidden>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h2 class="section-title" style="margin:0;">Institutional Announcements</h2>
+        <button class="btn-ghost" id="backToAllFromAnnouncementsBtn" type="button">← All lectures</button>
+      </div>
+      <div id="studentAnnouncementsList" style="display:flex;flex-direction:column;gap:16px;">
+        <!-- dynamic announcements -->
       </div>
     </section>
 
@@ -503,6 +1120,11 @@
 
     <div id="pageMessage" role="status" aria-live="polite"></div>
   </main>
+</div>
+
+<!-- Resume Toast Notification (Phase 3) -->
+<div id="resumeToast" style="display:none;position:fixed;bottom:24px;right:24px;background:#0D3E36;color:#FFFFFF;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:99999;align-items:center;gap:8px;">
+  <span>▶</span> <span id="resumeToastMsg">Resumed from position</span>
 </div>
 
 <!-- ================= WATCH THEATER OVERLAY (Image 1) ================= -->
@@ -563,19 +1185,40 @@
           </div>
         </div>
 
-        <!-- Comments & doubts -->
+        <!-- Comments & Doubts Section (Student Q&A with Faculty) -->
         <section class="comments-section">
-          <h2 class="comments-title">Comments and doubts</h2>
+          <div class="doubts-header-row">
+            <h2 class="doubts-title">
+              <span>💬 Doubts & Discussion</span>
+              <span class="doubts-count-pill" id="doubtsCountBadge">0</span>
+            </h2>
+          </div>
+          <p class="doubts-subtext">
+            Have a question about this lecture? Ask below. Your faculty will review and post verified replies here.
+          </p>
           
-          <div class="comment-input-wrap">
-            <div class="comment-avatar-s" id="commentUserAvatar">S</div>
-            <div class="comment-input-box">
-              <input id="commentInput" type="text" placeholder="Ask a doubt or add a comment">
+          <!-- Ask Doubt Card -->
+          <div class="ask-doubt-card">
+            <div class="doubt-user-avatar" id="commentUserAvatar">S</div>
+            <div class="doubt-input-wrapper">
+              <textarea id="commentInput" class="doubt-textarea" rows="2" placeholder="Have a doubt? Ask your professor about this lecture..."></textarea>
+              <div class="doubt-actions-bar">
+                <div class="doubt-actions-left">
+                  <button type="button" class="btn-tag-timestamp" id="tagTimestampBtn" onclick="tagCurrentVideoTimestamp()" title="Attach current video playback timestamp to your question">
+                    ⏱ At current time (<span id="currentTimeTagDisplay">00:00</span>)
+                  </button>
+                  <span class="doubt-hint-text">Faculty replies appear directly under your question.</span>
+                </div>
+                <button type="button" class="btn-post-doubt" id="submitCommentBtn" onclick="handlePostDoubt()">
+                  <span>❓ Ask Faculty</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="comment-list" id="commentsList">
-            <p style="color:var(--muted);font-size:13px;padding:8px 0;">No comments or doubts yet. Ask the first question!</p>
+          <!-- Doubts List -->
+          <div class="doubts-list-wrap" id="commentsList">
+            <p style="color:var(--muted);font-size:13.5px;padding:12px 0;">Loading doubts...</p>
           </div>
 
         </section>
@@ -583,11 +1226,72 @@
       </div>
     </div>
 
-    <!-- Right Column: Up Next -->
-    <aside class="up-next-panel">
-      <h2 class="up-next-title">Up next</h2>
-      <div class="up-next-list" id="watchPlaylist">
-        <p style="color:var(--muted);font-size:13px;">No upcoming lectures in this subject yet.</p>
+    <!-- Right Column: AI Assistant + Up Next -->
+    <aside class="up-next-panel" id="theaterRightSidebar">
+      <!-- Sidebar Tab Switcher -->
+      <div class="sidebar-tab-switcher">
+        <button class="sidebar-tab-btn active" id="tabBtnAi" type="button" onclick="switchSidebarTab('ai')">
+          🤖 Ask AI Assistant
+        </button>
+        <button class="sidebar-tab-btn" id="tabBtnPlaylist" type="button" onclick="switchSidebarTab('playlist')">
+          Up next
+        </button>
+      </div>
+
+      <!-- Tab Content 1: AI Lecture Assistant -->
+      <div class="sidebar-tab-content" id="tabContentAi">
+        <div class="ai-panel-header">
+          <div class="ai-header-title">
+            <span>Lecture Assistant</span>
+            <span class="ai-model-tag">Groq AI</span>
+          </div>
+          <div id="aiTranscriptStatusBadge" class="ai-status-badge">Checking...</div>
+        </div>
+
+        <!-- Disabled message if transcript is not ready -->
+        <div class="ai-disabled-banner" id="aiDisabledBanner" style="display:none;">
+          <div class="ai-disabled-icon" id="aiDisabledIcon">⏳</div>
+          <div class="ai-disabled-text" id="aiDisabledMessage">AI transcript is being processed.</div>
+        </div>
+
+        <!-- Interactive AI Chat Body -->
+        <div class="ai-chat-body" id="aiChatBody">
+          <div class="ai-messages-scroll" id="aiMessagesScroll">
+            <div class="ai-bubble ai-bot-bubble">
+              <div class="ai-bot-avatar">🤖</div>
+              <div class="ai-bubble-content">
+                <p>Hello! I'm your <strong>ADHYAY AI Assistant</strong> for this lecture. Ask me anything about what the professor taught—answers include <strong>clickable timestamps</strong> to seek the video!</p>
+                <div class="ai-suggestion-chips">
+                  <button type="button" class="ai-chip" onclick="submitQuickQuestion('Summarize the main concepts in this lecture.')">📌 Summarize lecture</button>
+                  <button type="button" class="ai-chip" onclick="submitQuickQuestion('What key definitions or algorithms were covered?')">💡 Key definitions</button>
+                  <button type="button" class="ai-chip" onclick="submitQuickQuestion('What were the important exam or practical points mentioned?')">🎯 Important points</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div class="ai-loading-indicator" id="aiLoadingIndicator" style="display:none;">
+            <div class="ai-spinner"></div>
+            <span>Searching transcript & formulating answer...</span>
+          </div>
+
+          <!-- Input Bar -->
+          <form class="ai-input-form" id="aiQuestionForm" onsubmit="handleAiQuestionSubmit(event)">
+            <input type="text" id="aiQuestionInput" class="ai-input" placeholder="Ask a question about this lecture..." autocomplete="off">
+            <button type="submit" id="aiSendBtn" class="ai-send-btn" title="Send question">
+              ➤
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Up Next Playlist -->
+      <div class="sidebar-tab-content" id="tabContentPlaylist" style="display:none;">
+        <h2 class="up-next-title" style="margin-top:10px;">Up next</h2>
+        <div class="up-next-list" id="watchPlaylist">
+          <p style="color:var(--muted);font-size:13px;">No upcoming lectures in this subject yet.</p>
+        </div>
       </div>
     </aside>
 
@@ -618,6 +1322,7 @@
     }
   }
 </script>
-<script src="student-dashboard.js?v=2"></script>
+<script src="auth-client.js?v=2"></script>
+<script src="student-dashboard.js?v=70"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ import com.adhyay.adhyay_backend.repository.UserRepository;
 import com.adhyay.adhyay_backend.service.LectureService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
 @CrossOrigin(origins = "*")
 public class AdminController {
 

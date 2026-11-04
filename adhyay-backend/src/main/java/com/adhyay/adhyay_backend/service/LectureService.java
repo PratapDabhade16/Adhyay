@@ -1,15 +1,17 @@
-
 package com.adhyay.adhyay_backend.service;
 
 import com.adhyay.adhyay_backend.model.Lecture;
 import com.adhyay.adhyay_backend.repository.LectureRepository;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
@@ -18,12 +20,15 @@ public class LectureService {
 
     private final LectureRepository lectureRepository;
     private final Cloudinary cloudinary;
+    private final LectureAiService lectureAiService;
 
     public LectureService(
             LectureRepository lectureRepository,
-            Cloudinary cloudinary) {
+            Cloudinary cloudinary,
+            @Lazy LectureAiService lectureAiService) {
         this.lectureRepository = lectureRepository;
         this.cloudinary = cloudinary;
+        this.lectureAiService = lectureAiService;
     }
 
     public Lecture uploadLecture(
@@ -41,20 +46,26 @@ public class LectureService {
 
         String contentType = video.getContentType();
 
-        if (contentType == null ||
-                !contentType.startsWith("video/")) {
+        if (contentType == null || !contentType.startsWith("video/")) {
             throw new RuntimeException("Only video files are allowed");
         }
 
-        File temporaryVideo = File.createTempFile(
-                "adhyay-lecture-", ".upload"
-        );
+        File temporaryVideo = File.createTempFile("adhyay-lecture-", ".upload");
+        File aiVideoFile = File.createTempFile("adhyay-ai-", ".mp4");
 
         Map<?, ?> uploadResult;
 
         try {
             try (java.io.InputStream in = video.getInputStream()) {
-                java.nio.file.Files.copy(in, temporaryVideo.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(in, temporaryVideo.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // Create a dedicated local copy for the async FFmpeg transcription task
+            try {
+                Files.copy(temporaryVideo.toPath(), aiVideoFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                // If local copy fails, aiVideoFile will be null and the service will download from Cloudinary URL
+                aiVideoFile = null;
             }
 
             uploadResult = cloudinary.uploader().uploadLarge(
@@ -66,17 +77,13 @@ public class LectureService {
                     )
             );
         } finally {
-            if (temporaryVideo.exists() &&
-                    !temporaryVideo.delete()) {
+            if (temporaryVideo.exists() && !temporaryVideo.delete()) {
                 temporaryVideo.deleteOnExit();
             }
         }
 
-        String videoUrl =
-                uploadResult.get("secure_url").toString();
-
-        String publicId =
-                uploadResult.get("public_id").toString();
+        String videoUrl = uploadResult.get("secure_url").toString();
+        String publicId = uploadResult.get("public_id").toString();
 
         Lecture lecture = new Lecture();
         lecture.setTitle(title);
@@ -87,8 +94,19 @@ public class LectureService {
         lecture.setVideoUrl(videoUrl);
         lecture.setPublicId(publicId);
         lecture.setUploadedBy(uploadedBy);
+        lecture.setTranscriptStatus("PENDING");
 
-        return lectureRepository.save(lecture);
+        Lecture saved = lectureRepository.save(lecture);
+
+        // Trigger Async Groq AI Transcription Job
+        try {
+            lectureAiService.processLectureTranscriptionAsync(saved.getId(), aiVideoFile);
+        } catch (Exception ex) {
+            // Log but don't fail the upload response
+            ex.printStackTrace();
+        }
+
+        return saved;
     }
 
     public List<Lecture> getAllLectures() {

@@ -166,6 +166,10 @@ function setupTabSwitching() {
 // ============================================================
 // 1 & 7. OVERVIEW & ANALYTICS
 // ============================================================
+let uploadsChartInstance = null;
+let usersChartInstance = null;
+let aiHealthChartInstance = null;
+
 async function loadOverviewAnalytics() {
     const kpiStudents = document.getElementById("kpiStudents");
     const kpiFaculty = document.getElementById("kpiFaculty");
@@ -175,6 +179,8 @@ async function loadOverviewAnalytics() {
     const pendingAlertText = document.getElementById("pendingAlertText");
     const mostWatchedList = document.getElementById("mostWatchedList");
     const overviewLogsList = document.getElementById("overviewLogsList");
+    const kpiTotalUsersLabel = document.getElementById("kpiTotalUsersLabel");
+    const adminStorageBadge = document.getElementById("adminStorageBadge");
 
     try {
         const res = await fetch(`${API}/admin/analytics`);
@@ -222,6 +228,99 @@ async function loadOverviewAnalytics() {
         }
     } catch (e) {
         console.error("Failed to load analytics", e);
+    }
+
+    // Phase 4 Institutional Analytics & Chart.js Visualizations
+    try {
+        const instRes = await fetch(`${API}/analytics/admin`);
+        if (instRes.ok) {
+            const anData = await instRes.json();
+
+            if (kpiTotalUsersLabel && anData.users) {
+                kpiTotalUsersLabel.textContent = `${anData.users.total} Total Accounts`;
+            }
+            if (adminStorageBadge && anData.storage) {
+                adminStorageBadge.textContent = `Est. ${anData.storage.estimatedGB} GB | ${anData.storage.totalMaterials} Notes`;
+            }
+
+            if (typeof Chart !== "undefined") {
+                // 1. Weekly Uploads Bar Chart
+                const uploadsCanvas = document.getElementById("adminWeeklyUploadsChart");
+                if (uploadsCanvas && anData.weeklyUploads) {
+                    if (uploadsChartInstance) uploadsChartInstance.destroy();
+                    uploadsChartInstance = new Chart(uploadsCanvas.getContext("2d"), {
+                        type: "bar",
+                        data: {
+                            labels: anData.weeklyUploads.labels || [],
+                            datasets: [{
+                                label: "Uploads",
+                                data: anData.weeklyUploads.counts || [],
+                                backgroundColor: "rgba(13, 62, 54, 0.8)",
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                        }
+                    });
+                }
+
+                // 2. User Roles Doughnut Chart
+                const usersCanvas = document.getElementById("adminUsersChart");
+                if (usersCanvas && anData.users) {
+                    if (usersChartInstance) usersChartInstance.destroy();
+                    usersChartInstance = new Chart(usersCanvas.getContext("2d"), {
+                        type: "doughnut",
+                        data: {
+                            labels: ["Students", "Faculty", "Admins"],
+                            datasets: [{
+                                data: [anData.users.students || 0, anData.users.faculty || 0, anData.users.admin || 0],
+                                backgroundColor: ["#0D3E36", "#EBA83A", "#3B82F6"]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: "right", labels: { boxWidth: 12, font: { size: 11 } } }
+                            }
+                        }
+                    });
+                }
+
+                // 3. AI Pipeline Health Pie Chart
+                const aiCanvas = document.getElementById("adminAiHealthChart");
+                if (aiCanvas && anData.aiHealth) {
+                    if (aiHealthChartInstance) aiHealthChartInstance.destroy();
+                    aiHealthChartInstance = new Chart(aiCanvas.getContext("2d"), {
+                        type: "doughnut",
+                        data: {
+                            labels: ["Transcribed", "In Progress", "Failed"],
+                            datasets: [{
+                                data: [
+                                    Math.max(1, anData.aiHealth.transcriptionsReady || 0),
+                                    anData.aiHealth.transcriptionsPending || 0,
+                                    anData.aiHealth.transcriptionsFailed || 0
+                                ],
+                                backgroundColor: ["#15803D", "#EAB308", "#EF4444"]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: "right", labels: { boxWidth: 12, font: { size: 11 } } }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Could not load institutional analytics charts:", e);
     }
 
     // Mini recent logs on Overview
@@ -918,6 +1017,42 @@ function renderLogs(logs) {
         `;
     }).join("");
 }
+
+// ============================================================
+// PHASE 4: AUDIT LOGS CSV EXPORT
+// ============================================================
+window.exportAuditLogsCsv = async function() {
+    const btn = document.getElementById("btnExportLogsCsv");
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Exporting...";
+    }
+    try {
+        const searchVal = document.getElementById("logsSearch")?.value.trim() || "";
+        let url = `${API}/analytics/admin/audit-logs/export`;
+        if (searchVal) url += `?userEmail=${encodeURIComponent(searchVal)}`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Export failed with status " + res.status);
+        const blob = await res.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = `adhyay_audit_logs_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast("Audit logs exported to CSV successfully.");
+    } catch (err) {
+        showToast("Failed to export audit logs: " + err.message, true);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>📥</span> Export CSV`;
+        }
+    }
+};
 
 // ============================================================
 // INITIALIZATION
