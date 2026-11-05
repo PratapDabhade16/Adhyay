@@ -11,8 +11,8 @@
     // 1. Check if user/teammate specified a custom backend URL in localStorage
     const savedUrl = localStorage.getItem("adhyayBackendUrl");
 
-    // 2. Default production backend URL (Teammates can update this URL once deployed)
-    const DEFAULT_PROD_URL = "https://adhyay-backend.onrender.com/api";
+    // 2. Default production backend URL
+    const DEFAULT_PROD_URL = "https://adhyay-backend-nbb3.onrender.com/api";
 
     const API_BASE = isLocalhost 
         ? "http://localhost:8081/api" 
