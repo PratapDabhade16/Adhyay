@@ -4,7 +4,9 @@
 // Strict @walchandsangli.ac.in Domain Enforcement
 // =====================================================
 
-const API_URL = "http://localhost:8081/api/auth";
+const API_URL = (window.ADHYAY_CONFIG && window.ADHYAY_CONFIG.AUTH_BASE)
+    ? window.ADHYAY_CONFIG.AUTH_BASE
+    : "http://localhost:8081/api/auth";
 const REQUIRED_DOMAIN = "@walchandsangli.ac.in";
 
 let selectedRole = "STUDENT";

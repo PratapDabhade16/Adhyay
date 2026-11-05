@@ -33,3 +33,4 @@ public class RootRedirectController {
                 .build();
     }
 }
+

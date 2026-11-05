@@ -3,7 +3,9 @@
 // Complete Drag-and-Drop & File Upload System
 // =========================================
 
-const API_URL = "http://localhost:8081/api";
+const API_URL = (window.ADHYAY_CONFIG && window.ADHYAY_CONFIG.API_BASE)
+    ? window.ADHYAY_CONFIG.API_BASE
+    : "http://localhost:8081/api";
 const UPLOAD_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 let currentUser = null;
@@ -503,7 +505,9 @@ async function loadMoodleCourses() {
     if (!container) return;
 
     try {
-        const res = await fetch("http://localhost:8081/api/moodle/courses");
+        const res = await (typeof authenticatedFetch === "function" 
+            ? authenticatedFetch(`${API_URL}/moodle/courses`) 
+            : fetch(`${API_URL}/moodle/courses`));
         if (!res.ok) throw new Error();
         const courses = await res.json();
         if (Array.isArray(courses) && courses.length > 0) {

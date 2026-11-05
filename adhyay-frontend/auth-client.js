@@ -4,7 +4,9 @@
 // automatic 401 interception, token rotation and logout.
 // ========================================================
 
-const AUTH_API_BASE = "http://localhost:8081/api";
+const AUTH_API_BASE = (window.ADHYAY_CONFIG && window.ADHYAY_CONFIG.API_BASE) 
+    ? window.ADHYAY_CONFIG.API_BASE 
+    : "http://localhost:8081/api";
 
 const TOKEN_KEYS = {
     ACCESS: "adhyayAccessToken",
@@ -108,7 +110,7 @@ const _nativeFetch = window.fetch;
 
 async function authenticatedFetch(input, init = {}) {
     const url = typeof input === "string" ? input : (input && input.url ? input.url : "");
-    const isBackendApi = url.includes(":8081/api");
+    const isBackendApi = url.includes("/api") || (window.ADHYAY_CONFIG && url.includes(window.ADHYAY_CONFIG.API_BASE));
     const isAuthEndpoint = url.includes("/api/auth/login") || 
                            url.includes("/api/auth/refresh") || 
                            url.includes("/api/auth/register") ||

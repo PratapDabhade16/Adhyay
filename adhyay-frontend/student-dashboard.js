@@ -4,7 +4,9 @@
    File: student-dashboard.js
    ========================================= */
 
-const API_URL = "http://localhost:8081/api";
+const API_URL = (window.ADHYAY_CONFIG && window.ADHYAY_CONFIG.API_BASE)
+    ? window.ADHYAY_CONFIG.API_BASE
+    : "http://localhost:8081/api";
 const AUTH_KEY = "adhyayUser";
 const PROGRESS_KEY = "adhyayLectureProgress";
 const BOOKMARKS_KEY = "adhyayLectureBookmarks";

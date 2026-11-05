@@ -10,7 +10,9 @@
 // 8. Security & Activity Audit Logs
 // ============================================================
 
-const API = "http://localhost:8081/api";
+const API = (window.ADHYAY_CONFIG && window.ADHYAY_CONFIG.API_BASE)
+    ? window.ADHYAY_CONFIG.API_BASE
+    : "http://localhost:8081/api";
 
 let currentAdminUser = null;
 let currentTab = "overview";
