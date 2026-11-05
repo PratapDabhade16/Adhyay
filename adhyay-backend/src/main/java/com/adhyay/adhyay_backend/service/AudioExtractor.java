@@ -58,7 +58,7 @@ public class AudioExtractor {
 
         // Command: ffmpeg -y -i in.mp4 -vn -ac 1 -ar 16000 -b:a 32k out.mp3
         List<String> command = List.of(
-                ffmpegPath,
+                getEffectiveFfmpegPath(),
                 "-y",
                 "-i", sourceVideo.getAbsolutePath(),
                 "-vn",
@@ -94,7 +94,7 @@ public class AudioExtractor {
 
         // Command: ffmpeg -y -i out.mp3 -f segment -segment_time 600 -c copy part_%03d.mp3
         List<String> splitCommand = List.of(
-                ffmpegPath,
+                getEffectiveFfmpegPath(),
                 "-y",
                 "-i", mainMp3.getAbsolutePath(),
                 "-f", "segment",
@@ -157,7 +157,7 @@ public class AudioExtractor {
         try {
             process = processBuilder.start();
         } catch (IOException e) {
-            throw new IOException("Could not execute FFmpeg at path '" + ffmpegPath + "'. " +
+            throw new IOException("Could not execute FFmpeg at path '" + getEffectiveFfmpegPath() + "'. " +
                     "Please ensure FFmpeg is installed and added to PATH (or configure ffmpeg.path in application.properties). Error: " + e.getMessage(), e);
         }
 

@@ -17,7 +17,7 @@ RUN mvn clean package -DskipTests -B
 FROM eclipse-temurin:21-jre-alpine AS runner
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl ffmpeg
 
 # Non-root user for security
 RUN addgroup -S adhyay && adduser -S adhyay -G adhyay
