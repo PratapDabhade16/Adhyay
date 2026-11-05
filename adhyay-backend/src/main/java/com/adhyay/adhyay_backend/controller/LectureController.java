@@ -126,7 +126,6 @@ public class LectureController {
     // ==========================================
 
     @PostMapping("/{id}/ask")
-    @PreAuthorize("hasAnyRole('STUDENT', 'FACULTY', 'ADMIN')")
     public ResponseEntity<?> askLectureQuestion(
             @PathVariable String id,
             @Valid @RequestBody AskRequest request,

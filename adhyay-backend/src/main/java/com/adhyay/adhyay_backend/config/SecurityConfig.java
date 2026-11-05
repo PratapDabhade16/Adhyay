@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/lectures/**", "/api/materials/**", "/api/announcements/**", "/api/doubts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/lectures/*/ask").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/lectures/upload").hasAnyRole("FACULTY", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/doubts/*/reply").hasRole("FACULTY")
@@ -86,7 +87,7 @@ public class SecurityConfig {
             config.setAllowedOrigins(allowedOrigins);
         }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "Content-Disposition"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

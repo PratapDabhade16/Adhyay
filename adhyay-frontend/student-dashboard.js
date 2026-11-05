@@ -1913,7 +1913,7 @@ window.handleAiQuestionSubmit = async function(event) {
 
     } catch (err) {
         console.error("AI Ask error:", err);
-        appendChatBubble("bot", "⚠️ Network error connecting to AI assistant on port 8081.");
+        appendChatBubble("bot", `⚠️ Unable to connect to AI assistant: ${err.message || "Network error"}`);
     } finally {
         isAiAsking = false;
         if (sendBtn) sendBtn.disabled = false;
