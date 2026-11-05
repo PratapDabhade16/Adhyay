@@ -498,10 +498,10 @@
     <div class="landing-container">
       <div class="nav-inner">
         
-        <div class="logo-wrap">
+        <a href="index.html" class="logo-wrap" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px;">
           <div class="logo-mark">A</div>
           <span class="logo-name">ADHYAY</span>
-        </div>
+        </a>
 
         <nav>
           <ul class="nav-links">
@@ -511,7 +511,7 @@
           </ul>
         </nav>
 
-        <div class="nav-actions">
+        <div class="nav-actions" id="landingNavActions">
           <a href="login.html" class="btn-outline">Sign in</a>
           <a href="login.html" class="btn-primary">Create account</a>
         </div>
@@ -598,7 +598,7 @@
   </section>
 
   <!-- ================= METRICS STRIP ================= -->
-  <section class="stats-strip">
+  <section class="stats-strip" id="features">
     <div class="landing-container">
       <div class="stats-strip-grid">
         <div>
@@ -737,10 +737,10 @@
   <footer class="landing-footer">
     <div class="landing-container">
       <div class="footer-inner">
-        <div class="logo-wrap">
+        <a href="index.html" class="logo-wrap" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px;">
           <div class="logo-mark">A</div>
           <span class="logo-name">ADHYAY</span>
-        </div>
+        </a>
         <p>© 2026 ADHYAY. Lecture management for colleges and universities.</p>
         <div style="display:flex;gap:20px;">
           <a href="login.html" style="color:var(--muted);">Sign in</a>
@@ -750,5 +750,31 @@
     </div>
   </footer>
 
+  <script>
+    // Enhance navbar if user already has an active session
+    (function() {
+      try {
+        const user = JSON.parse(localStorage.getItem('adhyayUser') || '{}');
+        if (user && (user.email || user.name)) {
+          const role = (user.role || 'STUDENT').toUpperCase();
+          let targetDashboard = 'student-dashboard.html';
+          if (role === 'FACULTY') targetDashboard = 'faculty-dashboard.html';
+          if (role === 'ADMIN') targetDashboard = 'admin-dashboard.html';
+
+          const navActions = document.getElementById('landingNavActions');
+          if (navActions) {
+            navActions.innerHTML = `
+              <a href="${targetDashboard}" class="btn-primary" style="display:inline-flex; align-items:center; gap:8px; padding:9px 18px; font-size:13.5px;">
+                <span>${user.name || user.email.split('@')[0]} (${role})</span>
+                <span>Dashboard →</span>
+              </a>
+            `;
+          }
+        }
+      } catch (e) {
+        console.warn("User session check note:", e);
+      }
+    })();
+  </script>
 </body>
 </html>
