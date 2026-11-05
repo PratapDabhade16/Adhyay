@@ -32,3 +32,4 @@
 
     console.log(`[ADHYAY] Connected to API: ${window.ADHYAY_CONFIG.API_BASE}`);
 })();
+

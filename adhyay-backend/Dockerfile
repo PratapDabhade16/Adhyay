@@ -30,3 +30,4 @@ EXPOSE 8081
 
 # Container memory safety for free tier (512MB limit)
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+

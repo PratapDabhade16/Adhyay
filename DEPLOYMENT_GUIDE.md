@@ -168,3 +168,4 @@
 
 ### Q4: Render build fails with out-of-memory error?
 - Our production [`Dockerfile`](file:///c:/Users/Pratap/OneDrive/Attachments/Desktop/adhay/adhyay-backend/Dockerfile) includes `-XX:MaxRAMPercentage=75.0` specifically configured to stay safely inside Render's 512MB free tier limit.
+
