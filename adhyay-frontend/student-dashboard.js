@@ -1886,12 +1886,9 @@ window.handleAiQuestionSubmit = async function(event) {
 
         const res = await fetch(`${API_URL}/lectures/${encodeURIComponent(lectureId)}/ask`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-User-Id": userId,
-                "X-User-Role": role,
-                "X-User-Email": email
-            },
+            headers: getAuthHeaders({
+                "Content-Type": "application/json"
+            }),
             body: JSON.stringify({
                 question: question,
                 userId: userId,
