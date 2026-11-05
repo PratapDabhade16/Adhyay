@@ -8,6 +8,8 @@ services:
     region: oregon
     healthCheckPath: /api/health
     envVars:
+      - key: SPRING_DATA_MONGODB_URI
+        value: mongodb+srv://kritikadodke23_db_user:7MUdyZh183d9aTv6@cluster.y6ltair.mongodb.net/adhyay?retryWrites=true&w=majority
       - key: MONGODB_URI
         value: mongodb+srv://kritikadodke23_db_user:7MUdyZh183d9aTv6@cluster.y6ltair.mongodb.net/adhyay?retryWrites=true&w=majority
       - key: CLOUDINARY_CLOUD_NAME
