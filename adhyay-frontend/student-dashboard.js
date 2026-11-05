@@ -13,6 +13,14 @@ const BOOKMARKS_KEY = "adhyayLectureBookmarks";
 const COMMENTS_KEY = "adhyayLectureComments";
 const LIKES_KEY = "adhyayLectureLikes";
 
+/* ---------- Auth Headers Helper ---------- */
+function getAuthHeaders(extra = {}) {
+    const token = (typeof getAccessToken === "function" ? getAccessToken() : null) || localStorage.getItem("adhyayAccessToken");
+    const headers = { "Accept": "application/json", ...extra };
+    if (token) headers["Authorization"] = "Bearer " + token;
+    return headers;
+}
+
 /* ---------- Application State ---------- */
 
 let currentUser = null;

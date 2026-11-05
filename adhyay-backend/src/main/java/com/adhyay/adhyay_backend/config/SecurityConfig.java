@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/health").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/lectures/*/transcript-status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/lectures/**", "/api/materials/**", "/api/announcements/**", "/api/doubts/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/lectures/upload").hasAnyRole("FACULTY", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/doubts/*/reply").hasRole("FACULTY")
