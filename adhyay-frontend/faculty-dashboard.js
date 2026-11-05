@@ -271,6 +271,12 @@ function uploadLecture() {
         xhr.timeout = UPLOAD_TIMEOUT;
         xhr.setRequestHeader("Accept", "application/json");
 
+        // Attach JWT Bearer token for authentication
+        const authToken = (typeof getAccessToken === "function" ? getAccessToken() : null) || localStorage.getItem("adhyayAccessToken");
+        if (authToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + authToken);
+        }
+
         xhr.upload.addEventListener("progress", (e) => {
             if (!e.lengthComputable) return;
             const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));

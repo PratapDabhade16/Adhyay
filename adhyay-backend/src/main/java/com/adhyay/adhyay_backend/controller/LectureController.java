@@ -38,7 +38,7 @@ public class LectureController {
     }
 
     @PostMapping("/upload")
-    @PreAuthorize("hasRole('FACULTY')")
+    @PreAuthorize("hasAnyRole('FACULTY', 'ADMIN')")
     public ResponseEntity<?> uploadLecture(
             @RequestParam("video") MultipartFile video,
             @RequestParam("title") String title,
