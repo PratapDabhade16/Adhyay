@@ -486,7 +486,7 @@ function formatDate(value) {
 
 /* ---------- Continue Watching ---------- */
 
-function renderContinueWatching() {
+async function renderContinueWatching() {
     const section = getElement("continueSection", "continueWatchingSection");
     const grid = getElement("continueGrid", "continueWatchingGrid");
 
@@ -1518,14 +1518,6 @@ function setupEventListeners() {
         });
     }
 
-    const theaterBtn = document.getElementById("theaterToggleBtn");
-    if (theaterBtn) {
-        theaterBtn.addEventListener("click", toggleTheaterMode);
-    }
-    const fullscreenBtn = document.getElementById("playerFullscreenBtn");
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener("click", toggleFullScreen);
-    }
 
     // Keyboard shortcuts: F (fullscreen), T (theater), Space (play/pause), Esc (close)
     document.addEventListener("keydown", event => {
@@ -1677,13 +1669,18 @@ async function loadStudentAnnouncements() {
 
 /* ---------- Initialize Dashboard ---------- */
 
-document.addEventListener("DOMContentLoaded", () => {
+function initDashboard() {
     if (!initializeUser()) return;
-
     setupEventListeners();
     fetchLectures();
     loadSubjectProgressStats();
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initDashboard);
+} else {
+    initDashboard();
+}
 
 
 
