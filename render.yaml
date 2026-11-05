@@ -9,7 +9,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: MONGODB_URI
-        sync: false # Teammates paste their free MongoDB Atlas connection string here
+        value: mongodb+srv://kritikadodke23_db_user:7MUdyZh183d9aTv6@cluster.y6ltair.mongodb.net/adhyay?retryWrites=true&w=majority
       - key: CLOUDINARY_CLOUD_NAME
         value: nsnspcyt
       - key: CLOUDINARY_API_KEY
