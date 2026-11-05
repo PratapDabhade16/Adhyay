@@ -9,21 +9,20 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: SPRING_DATA_MONGODB_URI
-        value: mongodb+srv://kritikadodke23_db_user:7MUdyZh183d9aTv6@cluster.y6ltair.mongodb.net/adhyay?retryWrites=true&w=majority
+        sync: false
       - key: MONGODB_URI
-        value: mongodb+srv://kritikadodke23_db_user:7MUdyZh183d9aTv6@cluster.y6ltair.mongodb.net/adhyay?retryWrites=true&w=majority
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
-        value: nsnspcyt
+        sync: false
       - key: CLOUDINARY_API_KEY
-        value: "947937423625287"
+        sync: false
       - key: CLOUDINARY_API_SECRET
-        value: 0c18gXprpSeC9-oz5o_UH3nzMF4
+        sync: false
       - key: RESEND_API_KEY
-        value: re_azk8QYdQ_Grzh6WafFFQMvvCVHSqgsPeP
+        sync: false
       - key: GROQ_API_KEY
-        value: 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
+        sync: false
       - key: JWT_SECRET
-        value: adhyay_walchand_college_super_secure_jwt_secret_key_minimum_256_bits_length_123456
+        sync: false
       - key: CORS_ALLOWED_ORIGINS
         value: "*"
-

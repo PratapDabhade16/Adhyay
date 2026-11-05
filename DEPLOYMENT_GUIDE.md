@@ -76,13 +76,13 @@
 
 | Key | Value | Description |
 |---|---|---|
-| `MONGODB_URI` | `mongodb+srv://adhyay_admin:...@.../adhyay?retryWrites=true&w=majority` | Your Atlas URI |
-| `CLOUDINARY_CLOUD_NAME` | `nsnspcyt` | Cloudinary Name |
-| `CLOUDINARY_API_KEY` | `947937423625287` | Cloudinary Key |
-| `CLOUDINARY_API_SECRET` | `0c18gXprpSeC9-oz5o_UH3nzMF4` | Cloudinary Secret |
-| `RESEND_API_KEY` | `re_azk8QYdQ_Grzh6WafFFQMvvCVHSqgsPeP` | Resend Key |
-| `GROQ_API_KEY` | `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` | Groq Key |
-| `JWT_SECRET` | `adhyay_walchand_college_super_secure_jwt_secret_key_minimum_256_bits_length_123456` | JWT Encryption |
+| `MONGODB_URI` | `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/adhyay?retryWrites=true&w=majority` | Your Atlas URI |
+| `CLOUDINARY_CLOUD_NAME` | `your_cloudinary_name` | Cloudinary Name |
+| `CLOUDINARY_API_KEY` | `your_cloudinary_api_key` | Cloudinary Key |
+| `CLOUDINARY_API_SECRET` | `your_cloudinary_api_secret` | Cloudinary Secret |
+| `RESEND_API_KEY` | `your_resend_api_key` | Resend Key |
+| `GROQ_API_KEY` | `your_groq_api_key` | Groq Key |
+| `JWT_SECRET` | `your_secure_random_jwt_secret_minimum_256_bits_length_123456` | JWT Encryption |
 | `CORS_ALLOWED_ORIGINS` | `*` | Allows all frontend origins |
 
 5. Click **Create Web Service**.
