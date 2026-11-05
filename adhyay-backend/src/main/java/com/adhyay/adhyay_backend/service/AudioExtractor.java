@@ -26,8 +26,22 @@ public class AudioExtractor {
     private static final long MAX_FILE_SIZE_BYTES = 24L * 1024L * 1024L; // 24MB Groq limit
     private static final int SEGMENT_TIME_SECONDS = 600; // 10 minutes
 
-    @Value("${ffmpeg.path:ffmpeg}")
+        @Value("${ffmpeg.path:ffmpeg}")
     private String ffmpegPath;
+
+    private String getEffectiveFfmpegPath() {
+        if (ffmpegPath != null && !ffmpegPath.isBlank()) {
+            File f = new File(ffmpegPath);
+            if (f.exists()) {
+                return ffmpegPath;
+            }
+        }
+        File linuxFfmpeg = new File("/usr/bin/ffmpeg");
+        if (linuxFfmpeg.exists()) {
+            return "/usr/bin/ffmpeg";
+        }
+        return "ffmpeg";
+    }
 
     public record AudioPart(File file, int partIndex, double timeOffsetSeconds) {}
 
